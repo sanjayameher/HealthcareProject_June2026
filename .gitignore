@@ -1,0 +1,22 @@
+# Maven build output
+target/
+*.class
+*.jar
+*.war
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# Spring Boot local config with credentials
+backend/patient-service/src/main/resources/application-local.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

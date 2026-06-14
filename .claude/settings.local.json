@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc -l)",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/pg_isready.exe\" -h localhost)",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h localhost -c \"SELECT 1\")",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/pg_isready.exe\" -h 127.0.0.1 -p 5432)",
+      "Bash(PGPASSWORD='PASSWORD---Aman2011$' \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"SELECT 1\")",
+      "Bash(PGPASSWORD='PASS WORD---Aman2011$' \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"SELECT 1\")",
+      "Bash(PGPASSWORD='Aman2011$' \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"DROP DATABASE IF EXISTS healthdb;\")",
+      "Bash(PGPASSWORD='Aman2011$' \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"CREATE DATABASE healthdb;\")",
+      "Bash(PGPASSWORD='Aman2011$' \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -d healthdb -f \"00_master.sql\")",
+      "Bash(PGPASSWORD='Aman2011$' \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"DROP DATABASE IF EXISTS healthdb; CREATE DATABASE healthdb;\")",
+      "Bash(PGPASSWORD='Aman2011$' '/c/Program Files/PostgreSQL/18/bin/psql.exe' -U postgres -h 127.0.0.1 -d healthdb -c ' *)",
+      "Bash(PGPASSWORD='Aman2011$' \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -d healthdb -f \"14_test_data.sql\")",
+      "Bash(mvn clean *)",
+      "Bash(python3 -)",
+      "Bash(which python3 *)",
+      "Read(//usr/**)",
+      "Bash(grep -v \"^.*:import\\\\|^.*://\\\\|^.*: *\\\\*\")"
+    ]
+  }
+}

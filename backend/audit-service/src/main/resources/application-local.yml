@@ -1,0 +1,25 @@
+# LOCAL DEVELOPER PROFILE — DO NOT USE IN PRODUCTION
+spring:
+  cache:
+    type: none
+  kafka:
+    bootstrap-servers: ""
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ""
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    com.healthcare: DEBUG
+    org.springframework.security: WARN
+    org.springframework.kafka: WARN
+    com.netflix.eureka: OFF
+    com.netflix.discovery: OFF
