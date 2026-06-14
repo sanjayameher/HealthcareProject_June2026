@@ -23,6 +23,7 @@
    - [Patients](#53-patients-api)
 6. [Enum Reference](#6-enum-reference)
 7. [Troubleshooting](#7-troubleshooting)
+8. [Push to GitHub](#8-push-to-github)
 
 ---
 
@@ -877,6 +878,164 @@ givenName,asc
 ```powershell
 netstat -ano | findstr :8081
 taskkill /PID <PID_NUMBER> /F
+```
+
+---
+
+---
+
+## 8. Push to GitHub
+
+> **Repository:** https://github.com/sanjayameher/HealthcareProject_June2026
+
+### Step 1 — Initialize Git
+
+Open PowerShell in the project root and run:
+
+```powershell
+cd C:\SANJAYA\PROJECT\HealthcareProject
+git init
+```
+
+---
+
+### Step 2 — Create `.gitignore`
+
+Create a `.gitignore` file to exclude build artifacts and sensitive files:
+
+```powershell
+notepad .gitignore
+```
+
+Paste the following content and save:
+
+```
+# Maven build output
+target/
+*.class
+*.jar
+*.war
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# Spring Boot local config with credentials — never commit this
+backend/patient-service/src/main/resources/application-local.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+```
+
+> **Important:** `application-local.yml` contains your database password.
+> It is excluded above so credentials are never pushed to GitHub.
+
+---
+
+### Step 3 — Stage All Files
+
+```powershell
+git add .
+```
+
+Verify what will be committed:
+
+```powershell
+git status
+```
+
+---
+
+### Step 4 — Create First Commit
+
+```powershell
+git commit -m "Initial commit — Healthcare Platform Patient Service"
+```
+
+---
+
+### Step 5 — Connect to GitHub Repository
+
+```powershell
+git remote add origin https://github.com/sanjayameher/HealthcareProject_June2026.git
+```
+
+Verify the remote was added:
+
+```powershell
+git remote -v
+# Expected:
+# origin  https://github.com/sanjayameher/HealthcareProject_June2026.git (fetch)
+# origin  https://github.com/sanjayameher/HealthcareProject_June2026.git (push)
+```
+
+---
+
+### Step 6 — Push to GitHub
+
+```powershell
+git branch -M main
+git push -u origin main
+```
+
+When prompted:
+- **Username:** your GitHub username (`sanjayameher`)
+- **Password:** your GitHub Personal Access Token (PAT) — **not** your GitHub login password
+
+#### How to generate a Personal Access Token (PAT)
+
+1. Go to **GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. Give it a name (e.g. `HealthcareProject`)
+4. Select scope: ✅ `repo`
+5. Click **Generate token**
+6. Copy the token immediately — GitHub shows it only once
+7. Use it as the password when `git push` prompts you
+
+---
+
+### All Commands in One Block
+
+```powershell
+cd C:\SANJAYA\PROJECT\HealthcareProject
+git init
+git add .
+git commit -m "Initial commit — Healthcare Platform Patient Service"
+git remote add origin https://github.com/sanjayameher/HealthcareProject_June2026.git
+git branch -M main
+git push -u origin main
+```
+
+---
+
+### Verify on GitHub
+
+After a successful push, open your browser:
+
+```
+https://github.com/sanjayameher/HealthcareProject_June2026
+```
+
+You should see all project files including:
+- `backend/patient-service/` — Spring Boot service
+- `db/schema/` — 14 SQL schema files
+- `docs/` — this documentation
+
+---
+
+### Future Commits (after making changes)
+
+```powershell
+git add .
+git commit -m "describe your change here"
+git push
 ```
 
 ---
