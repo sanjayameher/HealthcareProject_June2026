@@ -890,7 +890,7 @@ taskkill /PID <PID_NUMBER> /F
 
 ### Step 1 — Initialize Git
 
-Open PowerShell in the project root and run:
+Open PowerShell /COMMAND PROMPT through cmd in the project root and run:
 
 ```powershell
 cd C:\SANJAYA\PROJECT\HealthcareProject
