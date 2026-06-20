@@ -1,19 +1,18 @@
 package com.healthcare.clinical.domain.entity;
 
+import com.healthcare.clinical.domain.enums.EncounterClass;
+import com.healthcare.clinical.domain.enums.EncounterStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
 import java.util.UUID;
 
-/**
- * Maps to clinical.encounters — FHIR R4 Encounter resource.
- */
 @Entity
-@Table(name = "encounters", schema = "clinical")
+@Table(name = "encounters", schema = "dev")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,32 +23,42 @@ public class Encounter {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Column(name = "fhir_id", updatable = false)
+    private UUID fhirId;
+
     @Column(name = "patient_id", nullable = false)
     private UUID patientId;
 
-    @Column(name = "organization_id")
-    private UUID organizationId;
+    @ColumnTransformer(write = "?::dev.encounter_status")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, columnDefinition = "dev.encounter_status")
+    private EncounterStatus status = EncounterStatus.planned;
 
-    @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    @ColumnTransformer(write = "?::dev.encounter_class")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "class", nullable = false, columnDefinition = "dev.encounter_class")
+    private EncounterClass encounterClass = EncounterClass.virtual;
 
-    @Column(name = "class_code", nullable = false, length = 20)
-    private String classCode;
-
-    @Column(name = "class_display", length = 100)
-    private String classDisplay;
-
-    @Column(name = "type_code", length = 20)
+    @Column(name = "type_code")
     private String typeCode;
 
     @Column(name = "type_display")
     private String typeDisplay;
 
-    @Column(name = "reason_code", length = 20)
-    private String reasonCode;
+    @Column(name = "service_type_code")
+    private String serviceTypeCode;
 
-    @Column(name = "reason_display")
-    private String reasonDisplay;
+    @Column(name = "service_type_display")
+    private String serviceTypeDisplay;
+
+    @Column(name = "priority_code")
+    private String priorityCode = "routine";
+
+    @Column(name = "primary_practitioner_id")
+    private UUID primaryPractitionerId;
+
+    @Column(name = "organization_id")
+    private UUID organizationId;
 
     @Column(name = "period_start")
     private OffsetDateTime periodStart;
@@ -57,18 +66,56 @@ public class Encounter {
     @Column(name = "period_end")
     private OffsetDateTime periodEnd;
 
-    @Column(name = "length_minutes")
+    @Column(name = "length_minutes", insertable = false, updatable = false)
     private Integer lengthMinutes;
 
     @Column(name = "appointment_id")
     private UUID appointmentId;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "hospitalization", columnDefinition = "JSONB")
-    private Map<String, Object> hospitalization;
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "reason_codes", columnDefinition = "TEXT[]")
+    private String[] reasonCodes = new String[]{};
 
-    @Column(name = "discharge_disposition_code", length = 20)
-    private String dischargeDispositionCode;
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "reason_displays", columnDefinition = "TEXT[]")
+    private String[] reasonDisplays = new String[]{};
+
+    @Column(name = "telehealth_platform")
+    private String telehealthPlatform;
+
+    @Column(name = "telehealth_session_id")
+    private String telehealthSessionId;
+
+    @Column(name = "telehealth_session_url")
+    private String telehealthSessionUrl;
+
+    @Column(name = "connection_quality")
+    private String connectionQuality;
+
+    @Column(name = "hospitalization_admit_source")
+    private String hospitalizationAdmitSource;
+
+    @Column(name = "hospitalization_discharge_disposition")
+    private String hospitalizationDischargeDisposition;
+
+    @Column(name = "hospitalization_location")
+    private String hospitalizationLocation;
+
+    @Column(name = "chief_complaint")
+    private String chiefComplaint;
+
+    @Column(name = "assessment_plan")
+    private String assessmentPlan;
+
+    @Version
+    @Column(name = "version")
+    private Integer version = 1;
+
+    @Column(name = "fhir_version_id")
+    private String fhirVersionId = "1";
+
+    @Column(name = "fhir_last_updated")
+    private OffsetDateTime fhirLastUpdated;
 
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
@@ -76,18 +123,17 @@ public class Encounter {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    @Version
-    @Column(name = "version")
-    private Integer version = 0;
-
     @PrePersist
     void prePersist() {
+        if (fhirId == null) fhirId = UUID.randomUUID();
+        this.fhirLastUpdated = OffsetDateTime.now();
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
     }
 
     @PreUpdate
     void preUpdate() {
+        this.fhirLastUpdated = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
     }
 }
