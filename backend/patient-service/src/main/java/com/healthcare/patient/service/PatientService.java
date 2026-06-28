@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class PatientService {
     private final PatientNameRepository patientNameRepository;
     private final PhiEncryptionService phiEncryptionService;
     private final PatientMapper mapper;
+    @Nullable
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
@@ -119,6 +121,16 @@ public class PatientService {
 
     @Transactional
     @CacheEvict(value = "patients", key = "#id")
+    public void togglePatient(UUID id, boolean active) {
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient", id));
+        patient.setActive(active);
+        patientRepository.save(patient);
+        log.info("Patient {}: id={}", active ? "activated" : "deactivated", id);
+    }
+
+    @Transactional
+    @CacheEvict(value = "patients", key = "#id")
     public void deletePatient(UUID id) {
         if (!patientRepository.existsById(id)) {
             throw new ResourceNotFoundException("Patient", id);
@@ -129,12 +141,8 @@ public class PatientService {
 
     public Page<PatientResponse> searchPatients(String name, String mrn, Pageable pageable) {
         if (mrn != null && !mrn.isBlank()) {
-            java.util.Optional<Patient> found = patientRepository.findByMrn(mrn);
-            if (found.isPresent()) {
-                java.util.List<PatientResponse> list = java.util.List.of(mapper.toResponse(found.get()));
-                return new PageImpl<>(list, pageable, 1);
-            }
-            return Page.empty(pageable);
+            return patientRepository.findByMrnStartingWith(mrn.toUpperCase(), pageable)
+                    .map(mapper::toResponse);
         }
         if (name != null && !name.isBlank()) {
             return patientRepository.findByNameFragment(name, pageable)
@@ -146,8 +154,9 @@ public class PatientService {
     private record PatientCreatedEvent(UUID patientId, String mrn) {}
     private record PatientUpdatedEvent(UUID patientId, String mrn) {}
 
-    /** Sends a Kafka event, logging a warning instead of throwing if the broker is unavailable. */
+    /** Sends a Kafka event, skipped silently when broker is unavailable or Kafka is disabled. */
     private void sendEvent(String topic, String key, Object payload) {
+        if (kafkaTemplate == null) return;
         try {
             kafkaTemplate.send(topic, key, payload);
         } catch (Exception e) {

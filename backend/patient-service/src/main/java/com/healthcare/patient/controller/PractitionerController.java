@@ -35,6 +35,16 @@ public class PractitionerController {
                 .body(ApiResponse.created(practitionerService.createPractitioner(request)));
     }
 
+    @PatchMapping("/{id}/toggle")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Activate or deactivate a practitioner in the clinical record")
+    public ResponseEntity<ApiResponse<Void>> togglePractitioner(
+            @PathVariable UUID id,
+            @RequestParam boolean active) {
+        practitionerService.togglePractitioner(id, active);
+        return ResponseEntity.ok(ApiResponse.ok(null, active ? "Practitioner activated" : "Practitioner deactivated"));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('CLINICIAN', 'ADMIN', 'PATIENT')")
     @Operation(summary = "Get practitioner by ID")

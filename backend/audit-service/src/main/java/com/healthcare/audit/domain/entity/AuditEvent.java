@@ -15,7 +15,7 @@ import java.util.UUID;
  * PRIMARY KEY is composite (id, recorded).
  */
 @Entity
-@Table(name = "audit_events", schema = "audit")
+@Table(name = "audit_events", schema = "dev")
 @IdClass(AuditEventId.class)
 @Getter
 @NoArgsConstructor

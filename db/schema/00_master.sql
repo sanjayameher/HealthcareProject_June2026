@@ -53,6 +53,9 @@
 \echo '→ [13/13] Reference / seed data...'
 \i 13_seed_reference_data.sql
 
+\echo '→ [14/14] Auth accounts, availability slots, and notifications extension...'
+\i 15_auth_and_availability.sql
+
 \echo ''
 \echo '✓ Patient module schema deployed successfully.'
 \echo ''

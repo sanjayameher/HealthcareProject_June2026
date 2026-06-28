@@ -44,6 +44,15 @@ public class PractitionerService {
                 .orElseThrow(() -> new ResourceNotFoundException("Practitioner", id));
     }
 
+    @Transactional
+    public void togglePractitioner(UUID id, boolean active) {
+        Practitioner practitioner = practitionerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Practitioner", id));
+        practitioner.setActive(active);
+        practitionerRepository.save(practitioner);
+        log.info("Practitioner {}: id={}", active ? "activated" : "deactivated", id);
+    }
+
     public Page<PractitionerResponse> listPractitioners(String familyName, Pageable pageable) {
         if (familyName != null && !familyName.isBlank()) {
             return practitionerRepository

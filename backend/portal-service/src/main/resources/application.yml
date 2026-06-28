@@ -11,13 +11,20 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:healthdb}
     username: ${DB_USER:svc_portal}
     password: ${DB_PASSWORD:changeme}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-init-sql: |
+        SET search_path TO dev, public;
+        SET app.current_user_id = '';
+        SET app.current_user_role = 'db_system';
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: portal
+        default_schema: dev
     open-in-view: false
   security:
     oauth2:
@@ -33,6 +40,10 @@ spring:
 healthcare:
   encryption:
     key: ${PHI_ENCRYPTION_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+  jwt:
+    secret: ${JWT_SECRET:healthcare-portal-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256}
+    expiry-hours: ${JWT_EXPIRY_HOURS:24}
+    password-reset-minutes: ${JWT_RESET_MINUTES:15}
 
 eureka:
   client:

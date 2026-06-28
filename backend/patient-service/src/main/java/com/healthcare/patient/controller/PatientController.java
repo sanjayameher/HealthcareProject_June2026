@@ -62,6 +62,16 @@ public class PatientController {
         return ResponseEntity.ok(ApiResponse.ok(patientService.updatePatient(id, request)));
     }
 
+    @PatchMapping("/{id}/toggle")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Activate or deactivate a patient in the clinical record")
+    public ResponseEntity<ApiResponse<Void>> togglePatient(
+            @PathVariable UUID id,
+            @RequestParam boolean active) {
+        patientService.togglePatient(id, active);
+        return ResponseEntity.ok(ApiResponse.ok(null, active ? "Patient activated" : "Patient deactivated"));
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")

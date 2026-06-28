@@ -17,7 +17,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: audit
+        default_schema: dev
     open-in-view: false
   security:
     oauth2:

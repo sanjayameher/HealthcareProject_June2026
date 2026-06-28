@@ -17,7 +17,11 @@
       "Bash(python3 -)",
       "Bash(which python3 *)",
       "Read(//usr/**)",
-      "Bash(grep -v \"^.*:import\\\\|^.*://\\\\|^.*: *\\\\*\")"
+      "Bash(grep -v \"^.*:import\\\\|^.*://\\\\|^.*: *\\\\*\")",
+      "Bash(npm install *)",
+      "Bash(npx tailwindcss *)",
+      "Bash(grep -E \"\\\\.java$\")",
+      "Bash(npx tsc *)"
     ]
   }
 }

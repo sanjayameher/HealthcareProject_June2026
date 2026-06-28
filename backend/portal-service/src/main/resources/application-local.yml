@@ -34,6 +34,17 @@ eureka:
     register-with-eureka: false
     fetch-registry: false
 
+healthcare:
+  jwt:
+    secret: "local-dev-jwt-secret-key-that-is-at-least-256-bits-long-for-hs256-algorithm"
+    expiry-hours: 24
+    password-reset-minutes: 15
+  admin:
+    seed-email: "admin@healthcare.local"
+    seed-password: "Admin@1234"
+  clinical:
+    service-url: "http://localhost:8081"
+
 logging:
   level:
     com.healthcare: DEBUG

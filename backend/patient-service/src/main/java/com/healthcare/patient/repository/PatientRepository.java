@@ -19,6 +19,9 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
 
     boolean existsByMrn(String mrn);
 
+    @Query("SELECT p FROM Patient p WHERE UPPER(p.mrn) LIKE UPPER(CONCAT(:prefix, '%'))")
+    Page<Patient> findByMrnStartingWith(@Param("prefix") String prefix, Pageable pageable);
+
     @Query("""
             SELECT p FROM Patient p
             LEFT JOIN FETCH p.names n

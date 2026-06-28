@@ -7,10 +7,10 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * Maps to portal.appointments — FHIR R4 Appointment resource.
+ * Maps to dev.appointments — FHIR R4 Appointment resource.
  */
 @Entity
-@Table(name = "appointments", schema = "portal")
+@Table(name = "appointments", schema = "dev")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,32 +18,32 @@ import java.util.UUID;
 public class Appointment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "patient_id", nullable = false)
     private UUID patientId;
 
-    @Column(name = "organization_id")
-    private UUID organizationId;
-
-    @Column(name = "encounter_id")
-    private UUID encounterId;
-
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 30)
     private String status;
+
+    @Column(name = "cancellation_reason")
+    private String cancellationReason;
 
     @Column(name = "appointment_type_code", length = 30)
     private String appointmentTypeCode;
 
-    @Column(name = "appointment_type_display")
-    private String appointmentTypeDisplay;
+    @Column(name = "service_type_code")
+    private String serviceTypeCode;
 
-    @Column(name = "reason_code", length = 20)
-    private String reasonCode;
+    @Column(name = "service_type_display")
+    private String serviceTypeDisplay;
 
-    @Column(name = "reason_display")
-    private String reasonDisplay;
+    @Column(name = "specialty_code")
+    private String specialtyCode;
+
+    @Column(name = "specialty_display")
+    private String specialtyDisplay;
 
     @Column(name = "priority")
     private Integer priority;
@@ -57,7 +57,8 @@ public class Appointment {
     @Column(name = "end_time", nullable = false)
     private OffsetDateTime endTime;
 
-    @Column(name = "duration_minutes")
+    // GENERATED ALWAYS AS column in PostgreSQL — read-only
+    @Column(name = "duration_minutes", insertable = false, updatable = false)
     private Integer durationMinutes;
 
     @Column(name = "slot_id")
@@ -72,11 +73,17 @@ public class Appointment {
     @Column(name = "telehealth_meeting_id", length = 100)
     private String telehealthMeetingId;
 
-    @Column(name = "telehealth_join_url")
-    private String telehealthJoinUrl;
+    @Column(name = "telehealth_url")
+    private String telehealthUrl;
 
-    @Column(name = "reminder_sent_at")
-    private OffsetDateTime reminderSentAt;
+    @Column(name = "encounter_id")
+    private UUID encounterId;
+
+    @Column(name = "based_on_service_request_id")
+    private UUID basedOnServiceRequestId;
+
+    @Column(name = "version")
+    private Integer version;
 
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
@@ -88,6 +95,7 @@ public class Appointment {
     void prePersist() {
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
+        if (this.version == null) this.version = 1;
     }
 
     @PreUpdate

@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @RestController
@@ -30,10 +31,12 @@ public class AuditController {
     @Operation(summary = "Get audit events for a specific patient")
     public ResponseEntity<ApiResponse<Page<AuditEvent>>> getPatientAuditTrail(
             @PathVariable UUID patientId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
             @PageableDefault(size = 50) Pageable pageable) {
-        Page<AuditEvent> events = auditEventRepository.findByPatientAndPeriod(patientId, from, to, pageable);
+        OffsetDateTime effectiveFrom = from != null ? from : OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
+        OffsetDateTime effectiveTo   = to   != null ? to   : OffsetDateTime.now(ZoneOffset.UTC);
+        Page<AuditEvent> events = auditEventRepository.findByPatientAndPeriod(patientId, effectiveFrom, effectiveTo, pageable);
         return ResponseEntity.ok(ApiResponse.ok(events));
     }
 
@@ -42,10 +45,12 @@ public class AuditController {
     @Operation(summary = "Get audit events for a specific user")
     public ResponseEntity<ApiResponse<Page<AuditEvent>>> getUserAuditTrail(
             @PathVariable UUID userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
             @PageableDefault(size = 50) Pageable pageable) {
-        Page<AuditEvent> events = auditEventRepository.findByUserAndPeriod(userId, from, to, pageable);
+        OffsetDateTime effectiveFrom = from != null ? from : OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
+        OffsetDateTime effectiveTo   = to   != null ? to   : OffsetDateTime.now(ZoneOffset.UTC);
+        Page<AuditEvent> events = auditEventRepository.findByUserAndPeriod(userId, effectiveFrom, effectiveTo, pageable);
         return ResponseEntity.ok(ApiResponse.ok(events));
     }
 }
