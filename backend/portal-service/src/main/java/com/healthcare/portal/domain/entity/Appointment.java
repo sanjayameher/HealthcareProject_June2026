@@ -1,14 +1,14 @@
 package com.healthcare.portal.domain.entity;
 
+import com.healthcare.portal.domain.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * Maps to dev.appointments — FHIR R4 Appointment resource.
- */
 @Entity
 @Table(name = "appointments", schema = "dev")
 @Getter
@@ -21,11 +21,17 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    // DB generates this — let the DEFAULT gen_random_uuid() run
+    @Column(name = "fhir_id", insertable = false, updatable = false)
+    private UUID fhirId;
+
     @Column(name = "patient_id", nullable = false)
     private UUID patientId;
 
-    @Column(name = "status", nullable = false, length = 30)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "status", nullable = false, columnDefinition = "appointment_status")
+    private AppointmentStatus status;
 
     @Column(name = "cancellation_reason")
     private String cancellationReason;
@@ -45,8 +51,16 @@ public class Appointment {
     @Column(name = "specialty_display")
     private String specialtyDisplay;
 
+    // DB default: 5 (1=highest, 9=lowest per HL7)
     @Column(name = "priority")
-    private Integer priority;
+    private Integer priority = 5;
+
+    // TEXT[] columns — DB defaults to '{}', let DB handle them
+    @Column(name = "reason_codes", insertable = false, updatable = false)
+    private String reasonCodes;
+
+    @Column(name = "reason_displays", insertable = false, updatable = false)
+    private String reasonDisplays;
 
     @Column(name = "description")
     private String description;
@@ -82,6 +96,22 @@ public class Appointment {
     @Column(name = "based_on_service_request_id")
     private UUID basedOnServiceRequestId;
 
+    @Column(name = "reminder_24h_sent")
+    private Boolean reminder24hSent = false;
+
+    @Column(name = "reminder_2h_sent")
+    private Boolean reminder2hSent = false;
+
+    @Column(name = "fhir_version_id")
+    private String fhirVersionId = "1";
+
+    // DB defaults these to NOW() — let DB handle on insert
+    @Column(name = "fhir_last_updated", insertable = false, updatable = false)
+    private OffsetDateTime fhirLastUpdated;
+
+    @Column(name = "created", insertable = false, updatable = false)
+    private OffsetDateTime created;
+
     @Column(name = "version")
     private Integer version;
 
@@ -101,5 +131,6 @@ public class Appointment {
     @PreUpdate
     void preUpdate() {
         this.updatedAt = OffsetDateTime.now();
+        this.version = (this.version == null ? 1 : this.version) + 1;
     }
 }

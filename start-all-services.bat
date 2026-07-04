@@ -14,11 +14,17 @@ REM    8085 — audit-service
 REM ============================================================
 
 set BASE=c:\SANJAYA\PROJECT\HealthcareProject\backend
-set MVN=mvn spring-boot:run "-Dspring-boot.run.profiles=local"
+set MVN=mvn clean spring-boot:run "-Dspring-boot.run.profiles=local"
 
 echo.
 echo  Starting Healthcare Backend Services...
 echo  ========================================
+
+echo  [0/6] Installing healthcare-common to local Maven repo...
+cd /d %BASE%
+mvn install -DskipTests -pl healthcare-common -q
+echo  healthcare-common installed OK.
+echo.
 
 echo  [1/6] patient-service    (port 8081) ...
 start "patient-service   :8081" /min cmd /k "cd /d %BASE%\patient-service && %MVN%"

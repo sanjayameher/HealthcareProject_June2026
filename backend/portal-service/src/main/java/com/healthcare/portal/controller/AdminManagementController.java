@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +43,29 @@ public class AdminManagementController {
             @RequestHeader(value = "X-User-Id", required = false) UUID currentAdminId) {
         AdminAccount created = adminService.createAdmin(req, currentAdminId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(created));
+    }
+
+    // ── Dashboard stats ──────────────────────────────────────────
+
+    @GetMapping("/stats")
+    @Operation(summary = "Dashboard summary counts")
+    public ResponseEntity<ApiResponse<java.util.Map<String, Long>>> getStats() {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime in30Days = now.plusDays(30);
+        java.util.List<com.healthcare.portal.domain.enums.AppointmentStatus> excluded =
+                java.util.List.of(
+                        com.healthcare.portal.domain.enums.AppointmentStatus.cancelled,
+                        com.healthcare.portal.domain.enums.AppointmentStatus.noshow,
+                        com.healthcare.portal.domain.enums.AppointmentStatus.entered_in_error);
+
+        long patientCount = patientRepo.count();
+        long doctorCount = practitionerRepo.count();
+        long upcomingCount = bookingService.countUpcoming(now, in30Days, excluded);
+
+        return ResponseEntity.ok(ApiResponse.ok(java.util.Map.of(
+                "patients", patientCount,
+                "doctors", doctorCount,
+                "upcoming", upcomingCount)));
     }
 
     // ── Doctor management ────────────────────────────────────────

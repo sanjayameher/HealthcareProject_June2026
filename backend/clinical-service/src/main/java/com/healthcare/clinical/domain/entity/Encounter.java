@@ -4,8 +4,9 @@ import com.healthcare.clinical.domain.enums.EncounterClass;
 import com.healthcare.clinical.domain.enums.EncounterStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
@@ -29,14 +30,14 @@ public class Encounter {
     @Column(name = "patient_id", nullable = false)
     private UUID patientId;
 
-    @ColumnTransformer(write = "?::dev.encounter_status")
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "dev.encounter_status")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "status", nullable = false, columnDefinition = "encounter_status")
     private EncounterStatus status = EncounterStatus.planned;
 
-    @ColumnTransformer(write = "?::dev.encounter_class")
     @Enumerated(EnumType.STRING)
-    @Column(name = "class", nullable = false, columnDefinition = "dev.encounter_class")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "\"class\"", nullable = false, columnDefinition = "encounter_class")
     private EncounterClass encounterClass = EncounterClass.virtual;
 
     @Column(name = "type_code")

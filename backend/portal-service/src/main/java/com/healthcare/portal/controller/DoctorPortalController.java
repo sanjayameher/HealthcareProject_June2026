@@ -2,6 +2,7 @@ package com.healthcare.portal.controller;
 
 import com.healthcare.common.dto.ApiResponse;
 import com.healthcare.portal.domain.entity.Appointment;
+import com.healthcare.portal.domain.enums.AppointmentStatus;
 import com.healthcare.portal.dto.BookAppointmentRequest;
 import com.healthcare.portal.dto.UpdateAppointmentStatusRequest;
 import com.healthcare.portal.repository.AppointmentRepository;
@@ -40,7 +41,8 @@ public class DoctorPortalController {
         List<UUID> ids = bookingService.getTodaysQueueForDoctor(practitionerId)
                 .stream().map(Appointment::getId).toList();
         // Reuse the full list via a JPQL query against all appointments for this doctor
-        List<Appointment> upcoming = appointmentRepo.findUpcomingForPatient(null, now, now.plusDays(7))
+        List<AppointmentStatus> excluded = List.of(AppointmentStatus.cancelled, AppointmentStatus.noshow, AppointmentStatus.entered_in_error);
+        List<Appointment> upcoming = appointmentRepo.findAllInDateRange(now, now.plusDays(7), excluded)
                 .stream()
                 .filter(a -> ids.contains(a.getId()))
                 .toList();

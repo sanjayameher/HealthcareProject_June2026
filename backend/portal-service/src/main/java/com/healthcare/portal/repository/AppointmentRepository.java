@@ -22,11 +22,24 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
             WHERE a.patientId = :patientId
               AND a.startTime >= :from
               AND a.startTime < :to
-              AND a.status NOT IN ('cancelled', 'noshow')
+              AND a.status NOT IN :excluded
             ORDER BY a.startTime
             """)
     List<Appointment> findUpcomingForPatient(
             @Param("patientId") UUID patientId,
             @Param("from") OffsetDateTime from,
-            @Param("to") OffsetDateTime to);
+            @Param("to") OffsetDateTime to,
+            @Param("excluded") List<com.healthcare.portal.domain.enums.AppointmentStatus> excluded);
+
+    @Query("""
+            SELECT a FROM Appointment a
+            WHERE a.startTime >= :from
+              AND a.startTime < :to
+              AND a.status NOT IN :excluded
+            ORDER BY a.startTime
+            """)
+    List<Appointment> findAllInDateRange(
+            @Param("from") OffsetDateTime from,
+            @Param("to") OffsetDateTime to,
+            @Param("excluded") List<com.healthcare.portal.domain.enums.AppointmentStatus> excluded);
 }

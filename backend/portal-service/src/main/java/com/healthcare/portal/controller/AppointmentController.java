@@ -3,6 +3,7 @@ package com.healthcare.portal.controller;
 import com.healthcare.common.dto.ApiResponse;
 import com.healthcare.common.exception.ResourceNotFoundException;
 import com.healthcare.portal.domain.entity.Appointment;
+import com.healthcare.portal.domain.enums.AppointmentStatus;
 import com.healthcare.portal.repository.AppointmentRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,7 +61,8 @@ public class AppointmentController {
     public ResponseEntity<ApiResponse<List<Appointment>>> getUpcomingAppointments(@PathVariable UUID patientId) {
         OffsetDateTime now = OffsetDateTime.now();
         List<Appointment> upcoming = appointmentRepository
-                .findUpcomingForPatient(patientId, now, now.plusDays(90));
+                .findUpcomingForPatient(patientId, now, now.plusDays(90),
+                        List.of(AppointmentStatus.cancelled, AppointmentStatus.noshow, AppointmentStatus.entered_in_error));
         return ResponseEntity.ok(ApiResponse.ok(upcoming));
     }
 
@@ -82,7 +84,7 @@ public class AppointmentController {
     public ResponseEntity<ApiResponse<Appointment>> cancelAppointment(@PathVariable UUID id) {
         Appointment apt = appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
-        apt.setStatus("cancelled");
+        apt.setStatus(AppointmentStatus.cancelled);
         Appointment saved = appointmentRepository.save(apt);
         return ResponseEntity.ok(ApiResponse.ok(saved));
     }

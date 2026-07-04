@@ -1,7 +1,11 @@
 package com.healthcare.portal.domain.entity;
 
+import com.healthcare.portal.domain.enums.ParticipantRequired;
+import com.healthcare.portal.domain.enums.ParticipantStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -36,13 +40,15 @@ public class AppointmentParticipant {
     @Column(name = "actor_org_id")
     private UUID actorOrgId;
 
-    /** participant_required enum: required | optional | information_only */
-    @Column(name = "required", nullable = false, length = 30)
-    private String required = "required";
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "required", nullable = false, columnDefinition = "participant_required")
+    private ParticipantRequired required = ParticipantRequired.required;
 
-    /** participant_status enum: accepted | declined | tentative | needs_action */
-    @Column(name = "status", nullable = false, length = 30)
-    private String status = "accepted";
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "status", nullable = false, columnDefinition = "participant_status")
+    private ParticipantStatus status = ParticipantStatus.accepted;
 
     @Column(name = "period_start")
     private OffsetDateTime periodStart;

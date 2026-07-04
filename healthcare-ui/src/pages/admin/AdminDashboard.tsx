@@ -37,6 +37,12 @@ export function AdminDashboard() {
     refetchInterval: 30_000,
   });
 
+  const { data: stats } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: portalApi.getAdminStats,
+    refetchInterval: 60_000,
+  });
+
   const columns = [
     {
       key: 'time', header: 'Time',
@@ -56,9 +62,9 @@ export function AdminDashboard() {
     <PortalPageWrapper title={`Welcome, ${user?.fullName}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard icon={ClipboardList} label="In Queue Today" value={queue.length} color="bg-violet-600" />
-        <StatCard icon={Users}         label="Patients"        value="—"           color="bg-sky-500" />
-        <StatCard icon={UserCheck}     label="Doctors"         value="—"           color="bg-emerald-500" />
-        <StatCard icon={CalendarDays}  label="Upcoming"        value="—"           color="bg-amber-500" />
+        <StatCard icon={Users}         label="Patients"        value={stats?.patients  ?? '—'} color="bg-sky-500" />
+        <StatCard icon={UserCheck}     label="Doctors"         value={stats?.doctors   ?? '—'} color="bg-emerald-500" />
+        <StatCard icon={CalendarDays}  label="Upcoming"        value={stats?.upcoming  ?? '—'} color="bg-amber-500" />
       </div>
 
       <Card className="mb-8">

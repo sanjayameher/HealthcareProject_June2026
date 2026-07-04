@@ -1,6 +1,6 @@
 # Digital Health Platform — Patient Module
 ## High-Level Architecture Document
-**Stack:** Java 21 · Spring Boot 3.3 · Spring Cloud 2023 · PostgreSQL 16 · Kafka · Redis · Keycloak
+**Stack:** Java 21 · Spring Boot 3.3 · Spring Cloud 2023 · PostgreSQL 16 · Kafka · Redis · Keycloak. Ai/ml
 
 ---
 

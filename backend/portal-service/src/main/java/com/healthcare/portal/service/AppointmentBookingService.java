@@ -4,6 +4,8 @@ import com.healthcare.common.exception.ResourceNotFoundException;
 import com.healthcare.portal.domain.entity.Appointment;
 import com.healthcare.portal.domain.entity.AppointmentParticipant;
 import com.healthcare.portal.domain.entity.PractitionerAvailabilitySlot;
+import com.healthcare.portal.domain.enums.AppointmentStatus;
+import com.healthcare.portal.domain.enums.ParticipantStatus;
 import com.healthcare.portal.dto.BookAppointmentRequest;
 import com.healthcare.portal.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +37,7 @@ public class AppointmentBookingService {
         // Create appointment
         Appointment apt = new Appointment();
         apt.setPatientId(req.patientId());
-        apt.setStatus("booked");
+        apt.setStatus(AppointmentStatus.booked);
         apt.setStartTime(req.startTime());
         apt.setEndTime(req.endTime());
         apt.setSlotId(req.slotId());
@@ -49,7 +51,7 @@ public class AppointmentBookingService {
         pracPart.setTypeCode("ATND");
         pracPart.setTypeDisplay("Attender");
         pracPart.setActorPractitionerId(req.practitionerId());
-        pracPart.setStatus("accepted");
+        pracPart.setStatus(ParticipantStatus.accepted);
         participantRepo.save(pracPart);
 
         // Patient participant
@@ -58,7 +60,7 @@ public class AppointmentBookingService {
         patPart.setTypeCode("PART");
         patPart.setTypeDisplay("Participant");
         patPart.setActorPatientId(req.patientId());
-        patPart.setStatus("accepted");
+        patPart.setStatus(ParticipantStatus.accepted);
         participantRepo.save(patPart);
 
         // Mark slot as booked
@@ -78,7 +80,7 @@ public class AppointmentBookingService {
     public Appointment cancelAppointment(UUID appointmentId) {
         Appointment apt = appointmentRepo.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
-        apt.setStatus("cancelled");
+        apt.setStatus(AppointmentStatus.cancelled);
         apt.setCancellationReason("Cancelled by user");
         final Appointment saved = appointmentRepo.save(apt);
 
@@ -108,7 +110,7 @@ public class AppointmentBookingService {
     public Appointment updateStatus(UUID appointmentId, String newStatus, UUID reassignPractitionerId) {
         Appointment apt = appointmentRepo.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
-        apt.setStatus(newStatus);
+        apt.setStatus(AppointmentStatus.valueOf(newStatus));
         apt = appointmentRepo.save(apt);
 
         if (reassignPractitionerId != null) {
@@ -118,7 +120,7 @@ public class AppointmentBookingService {
             newPrac.setTypeCode("ATND");
             newPrac.setTypeDisplay("Attender");
             newPrac.setActorPractitionerId(reassignPractitionerId);
-            newPrac.setStatus("accepted");
+            newPrac.setStatus(ParticipantStatus.accepted);
             participantRepo.save(newPrac);
         }
 
@@ -126,23 +128,27 @@ public class AppointmentBookingService {
     }
 
     @Transactional(readOnly = true)
+    public long countUpcoming(OffsetDateTime from, OffsetDateTime to, List<AppointmentStatus> excluded) {
+        return appointmentRepo.findAllInDateRange(from, to, excluded).size();
+    }
+
+    @Transactional(readOnly = true)
     public List<Appointment> getTodaysQueue() {
         OffsetDateTime startOfDay = OffsetDateTime.now().toLocalDate().atStartOfDay().atOffset(OffsetDateTime.now().getOffset());
         OffsetDateTime endOfDay   = startOfDay.plusDays(1);
-        return appointmentRepo.findUpcomingForPatient(null, startOfDay, endOfDay)
-                .stream()
-                .filter(a -> List.of("booked", "arrived", "checked_in").contains(a.getStatus()))
-                .toList();
+        List<AppointmentStatus> excluded = List.of(AppointmentStatus.cancelled, AppointmentStatus.noshow, AppointmentStatus.entered_in_error);
+        return appointmentRepo.findAllInDateRange(startOfDay, endOfDay, excluded);
     }
 
     @Transactional(readOnly = true)
     public List<Appointment> getTodaysQueueForDoctor(UUID practitionerId) {
         OffsetDateTime startOfDay = OffsetDateTime.now().toLocalDate().atStartOfDay().atOffset(OffsetDateTime.now().getOffset());
         OffsetDateTime endOfDay   = startOfDay.plusDays(1);
+        List<AppointmentStatus> excluded = List.of(AppointmentStatus.cancelled, AppointmentStatus.noshow, AppointmentStatus.entered_in_error);
         List<UUID> appointmentIds = participantRepo.findAppointmentIdsByPractitionerId(practitionerId);
-        return appointmentRepo.findAll().stream()
+        return appointmentRepo.findAllInDateRange(startOfDay, endOfDay, excluded)
+                .stream()
                 .filter(a -> appointmentIds.contains(a.getId()))
-                .filter(a -> !a.getStartTime().isBefore(startOfDay) && a.getStartTime().isBefore(endOfDay))
                 .toList();
     }
 }

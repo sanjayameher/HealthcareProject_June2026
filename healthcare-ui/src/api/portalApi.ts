@@ -59,6 +59,12 @@ export const portalApi = {
   setPatientPassword: (token: string, newPassword: string) =>
     portalAxios.post<ApiResponse<void>>('/auth/patient/set-password', { token, newPassword }).then(unwrap),
 
+  // ── Admin: Dashboard stats ───────────────────────────────────────────────────
+  getAdminStats: () =>
+    portalAxios
+      .get<ApiResponse<{ patients: number; doctors: number; upcoming: number }>>('/admin/stats')
+      .then(unwrap),
+
   // ── Admin: Doctor management ─────────────────────────────────────────────────
   listDoctors: (active?: boolean) =>
     portalAxios

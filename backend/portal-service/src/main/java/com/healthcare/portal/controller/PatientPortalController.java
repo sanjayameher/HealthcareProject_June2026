@@ -3,6 +3,7 @@ package com.healthcare.portal.controller;
 import com.healthcare.common.dto.ApiResponse;
 import com.healthcare.portal.domain.entity.Appointment;
 import com.healthcare.portal.domain.entity.PractitionerAvailabilitySlot;
+import com.healthcare.portal.domain.enums.AppointmentStatus;
 import com.healthcare.portal.domain.entity.PractitionerView;
 import com.healthcare.portal.dto.BookAppointmentRequest;
 import com.healthcare.portal.repository.AppointmentRepository;
@@ -53,7 +54,8 @@ public class PatientPortalController {
     public ResponseEntity<ApiResponse<List<Appointment>>> getUpcoming(@PathVariable UUID patientId) {
         OffsetDateTime now = OffsetDateTime.now();
         return ResponseEntity.ok(ApiResponse.ok(
-                appointmentRepo.findUpcomingForPatient(patientId, now, now.plusDays(90))));
+                appointmentRepo.findUpcomingForPatient(patientId, now, now.plusDays(90),
+                        List.of(AppointmentStatus.cancelled, AppointmentStatus.noshow, AppointmentStatus.entered_in_error))));
     }
 
     @PostMapping("/{patientId}/appointments")
