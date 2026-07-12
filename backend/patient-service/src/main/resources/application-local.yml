@@ -1,0 +1,68 @@
+# LOCAL DEVELOPER PROFILE — DO NOT USE IN PRODUCTION
+# Run with: mvn spring-boot:run "-Dspring-boot.run.profiles=local"
+
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/healthdb
+    username: postgres
+    password: "Aman2011$"
+    hikari:
+      connection-init-sql: "SET search_path TO dev, public"
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: dev
+
+  flyway:
+    enabled: true
+    # Local dev: use postgres superuser so V1 can create extensions & schema
+    user: postgres
+    password: "Aman2011$"
+    # Only run versioned migrations — testdata already seeded, skip to avoid duplicate key errors
+    locations: classpath:db/migration
+    schemas: dev
+    default-schema: dev
+    baseline-on-migrate: true
+    baseline-version: 0
+    placeholders-enabled: false
+    # Skip checksum validation — schema was pre-applied before Flyway tracking began
+    validate-on-migrate: false
+    out-of-order: true
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+  cache:
+    type: none
+
+  kafka:
+    bootstrap-servers: ""
+
+  cloud:
+    discovery:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+healthcare:
+  encryption:
+    key: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
+logging:
+  level:
+    com.healthcare: DEBUG
+    org.springframework.security: WARN
+    org.springframework.kafka: WARN
+    com.netflix.eureka: OFF
+    com.netflix.discovery: OFF
