@@ -1,5 +1,5 @@
 server:
-  port: 8084
+  port: 7084
 
 spring:
   application:
@@ -26,6 +26,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         default_schema: dev
     open-in-view: false
+  flyway:
+    enabled: false  # Schema owned by patient-service
   security:
     oauth2:
       resourceserver:

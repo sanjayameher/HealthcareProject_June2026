@@ -10,30 +10,30 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 5001,
     proxy: {
       '/patient-svc': {
-        target: 'http://localhost:8081',
+        target: 'http://localhost:7081',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/patient-svc/, ''),
       },
       '/clinical-svc': {
-        target: 'http://localhost:8082',
+        target: 'http://localhost:7082',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/clinical-svc/, ''),
       },
       '/billing-svc': {
-        target: 'http://localhost:8083',
+        target: 'http://localhost:7083',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/billing-svc/, ''),
       },
       '/audit-svc': {
-        target: 'http://localhost:8085',
+        target: 'http://localhost:7085',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/audit-svc/, ''),
       },
       '/portal-svc': {
-        target: 'http://localhost:8084',
+        target: 'http://localhost:7084',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/portal-svc/, ''),
       },

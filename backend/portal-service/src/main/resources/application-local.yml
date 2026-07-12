@@ -43,7 +43,7 @@ healthcare:
     seed-email: "admin@healthcare.local"
     seed-password: "Admin@1234"
   clinical:
-    service-url: "http://localhost:8081"
+    service-url: "http://localhost:7081"
 
 logging:
   level:

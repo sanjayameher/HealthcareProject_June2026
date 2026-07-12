@@ -11,27 +11,27 @@ spring:
           enabled: false
       routes:
         - id: patient-service
-          uri: http://localhost:8081
+          uri: http://localhost:7081
           predicates:
             - Path=/api/v1/patients/**, /api/v1/organizations/**, /api/v1/practitioners/**
 
         - id: clinical-service
-          uri: http://localhost:8082
+          uri: http://localhost:7082
           predicates:
             - Path=/api/v1/encounters/**, /api/v1/observations/**, /api/v1/conditions/**, /api/v1/medications/**
 
         - id: billing-service
-          uri: http://localhost:8083
+          uri: http://localhost:7083
           predicates:
             - Path=/api/v1/coverage/**, /api/v1/payers/**
 
         - id: portal-service
-          uri: http://localhost:8084
+          uri: http://localhost:7084
           predicates:
             - Path=/api/v1/appointments/**, /api/v1/messages/**, /api/v1/consents/**
 
         - id: audit-service
-          uri: http://localhost:8085
+          uri: http://localhost:7085
           predicates:
             - Path=/api/v1/audit/**
 
