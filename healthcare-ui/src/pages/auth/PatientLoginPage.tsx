@@ -24,6 +24,10 @@ export function PatientLoginPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      email: 'john.smith@email.com',
+      password: 'Test@1234',
+    },
   });
 
   const mutation = useMutation({

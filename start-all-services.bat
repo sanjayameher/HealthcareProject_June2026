@@ -301,8 +301,11 @@ set CHROME="C:\Program Files\Google\Chrome\Application\chrome.exe"
 if not exist %CHROME% set CHROME="C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 
 if exist %CHROME% (
-    echo   Opening Login Page         ^> http://localhost:5001/login/admin
+    echo   Opening Admin Portal       ^> http://localhost:5001/login/admin
     start "" %CHROME% --new-tab "http://localhost:5001/login/admin"
+    timeout /t 1 /nobreak >nul
+    echo   Opening Patient Portal     ^> http://localhost:5001/login/patient
+    start "" %CHROME% --new-tab "http://localhost:5001/login/patient"
     timeout /t 1 /nobreak >nul
     echo   Opening patient-service    ^> http://localhost:7081/swagger-ui.html
     start "" %CHROME% --new-tab "http://localhost:7081/swagger-ui.html"
@@ -321,6 +324,7 @@ if exist %CHROME% (
 ) else (
     echo   [WARN] Chrome not found. Opening with default browser...
     start "" "http://localhost:5001/login/admin"
+    start "" "http://localhost:5001/login/patient"
 )
 echo   [OK] All URLs opened.
 echo.
@@ -343,7 +347,13 @@ echo   Backend     audit-service        7085    http://localhost:7085/swagger-ui
 echo   Frontend    healthcare-ui        5001    http://localhost:5001
 echo   Database    PostgreSQL           5432    healthdb
 echo.
-echo   Login URL  : http://localhost:5001/login/admin
+echo   ────────────────────────────────────────────────────────────────────────
+echo   PORTAL          URL                              CREDENTIALS (pre-filled)
+echo   ────────────────────────────────────────────────────────────────────────
+echo   Admin Portal    http://localhost:5001/login/admin    admin@healthcare.local / Admin@1234
+echo   Patient Portal  http://localhost:5001/login/patient  john.smith@email.com   / Test@1234
+echo   ────────────────────────────────────────────────────────────────────────
+echo.
 echo   Run log    : %RUNLOG%
 echo.
 echo   (Each service runs in its own minimized window.)

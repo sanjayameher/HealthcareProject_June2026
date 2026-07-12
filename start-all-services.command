@@ -259,7 +259,11 @@ open_chrome() {
     sleep 1
 }
 
-open_chrome "http://localhost:5001/login/admin"          "Login Page"
+# Admin Portal (credentials pre-filled: admin@healthcare.local / Admin@1234)
+open_chrome "http://localhost:5001/login/admin"          "Admin Portal"
+# Patient Portal (credentials pre-filled: john.smith@email.com / Test@1234)
+open_chrome "http://localhost:5001/login/patient"        "Patient Portal"
+# Swagger UIs
 open_chrome "http://localhost:7081/swagger-ui.html"      "patient-service  Swagger"
 open_chrome "http://localhost:7082/swagger-ui.html"      "clinical-service Swagger"
 open_chrome "http://localhost:7083/swagger-ui.html"      "billing-service  Swagger"
@@ -285,6 +289,12 @@ echo    "  Backend     portal-service       7084    http://localhost:7084/swagge
 echo    "  Backend     audit-service        7085    http://localhost:7085/swagger-ui.html"
 echo    "  Frontend    healthcare-ui        5001    http://localhost:5001"
 echo    "  Database    PostgreSQL           5432    healthdb"
+echo ""
+echo    "  ─────────────────────────────────────────────────────────"
+echo    "  PORTAL          URL                                     CREDENTIALS (pre-filled)"
+echo    "  ─────────────────────────────────────────────────────────"
+echo    "  Admin Portal    http://localhost:5001/login/admin       admin@healthcare.local / Admin@1234"
+echo    "  Patient Portal  http://localhost:5001/login/patient     john.smith@email.com / Test@1234"
 echo ""
 echo -e "  ${BOLD}${GREEN}▶  Login URL : http://localhost:5001/login/admin${RESET}"
 echo ""

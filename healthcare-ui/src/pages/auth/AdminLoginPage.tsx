@@ -24,6 +24,10 @@ export function AdminLoginPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      email: 'admin@healthcare.local',
+      password: 'Admin@1234',
+    },
   });
 
   const mutation = useMutation({
