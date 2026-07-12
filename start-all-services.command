@@ -4,13 +4,13 @@
 #  Branch : main
 #
 #  Steps:
-#    [1]  Stop running services (ports 7081-7085, 5002)
+#    [1]  Stop running services (ports 7081-7085, 5001)
 #    [2]  Git pull latest code from branch main
 #    [3]  Compile Frontend  (npm ci + tsc --noEmit)
 #    [4]  Compile Backend   (mvn package -DskipTests)
 #    [5]  Verify Flyway migration scripts
 #    [6]  Start Backend services  (ports 7081-7085)
-#    [7]  Start Frontend dev server (port 5002)
+#    [7]  Start Frontend dev server (port 5001)
 #
 #  Port Map:
 #    7081  patient-service
@@ -18,7 +18,7 @@
 #    7083  billing-service
 #    7084  portal-service
 #    7085  audit-service
-#    5002  healthcare-ui (Vite)
+#    5001  healthcare-ui (Vite)
 #    5432  PostgreSQL (healthdb)
 # ================================================================
 
@@ -66,11 +66,11 @@ echo -e " Log file: $RUNLOG"
 echo ""
 
 # ════════════════════════════════════════════════════════════════
-#  STEP 1 — Kill processes on ports 7081-7085 and 5002
+#  STEP 1 — Kill processes on ports 7081-7085 and 5001
 # ════════════════════════════════════════════════════════════════
-step "[STEP 1/7]  Stopping existing services on ports 7081-7085 and 5002..."
+step "[STEP 1/7]  Stopping existing services on ports 7081-7085 and 5001..."
 
-for PORT in 7081 7082 7083 7084 7085 5002; do
+for PORT in 7081 7082 7083 7084 7085 5001; do
     PID=$(lsof -ti tcp:$PORT 2>/dev/null)
     if [ -n "$PID" ]; then
         echo -e "  ${YELLOW}[KILL]${RESET}  Port $PORT — PID $PID — terminating..."
@@ -225,14 +225,14 @@ sleep 60
 # ════════════════════════════════════════════════════════════════
 #  STEP 7 — Start Frontend Dev Server
 # ════════════════════════════════════════════════════════════════
-step "[STEP 7/7]  Starting Frontend (Vite dev server — port 5002)..."
-osascript -e "tell application \"Terminal\" to do script \"echo '=== healthcare-ui :5002 ==='; cd \\\"$FRONTEND\\\" && npm run dev\""
+step "[STEP 7/7]  Starting Frontend (Vite dev server — port 5001)..."
+osascript -e "tell application \"Terminal\" to do script \"echo '=== healthcare-ui :5001 ==='; cd \\\"$FRONTEND\\\" && npm run dev\""
 
-# ── Wait for Vite to be ready (poll port 5002) ────────────────────
-echo "  Waiting for Vite dev server to be ready on port 5002..."
+# ── Wait for Vite to be ready (poll port 5001) ────────────────────
+echo "  Waiting for Vite dev server to be ready on port 5001..."
 for i in $(seq 1 30); do
-    if lsof -ti tcp:5002 &>/dev/null; then
-        ok "Frontend is up on port 5002."
+    if lsof -ti tcp:5001 &>/dev/null; then
+        ok "Frontend is up on port 5001."
         break
     fi
     echo "  Still waiting... ($i/30)"
@@ -255,7 +255,7 @@ open_chrome() {
     sleep 1
 }
 
-open_chrome "http://localhost:5002/login/admin"          "Login Page"
+open_chrome "http://localhost:5001/login/admin"          "Login Page"
 open_chrome "http://localhost:7081/swagger-ui.html"      "patient-service  Swagger"
 open_chrome "http://localhost:7082/swagger-ui.html"      "clinical-service Swagger"
 open_chrome "http://localhost:7083/swagger-ui.html"      "billing-service  Swagger"
@@ -279,10 +279,10 @@ echo    "  Backend     clinical-service     7082    http://localhost:7082/swagge
 echo    "  Backend     billing-service      7083    http://localhost:7083/swagger-ui.html"
 echo    "  Backend     portal-service       7084    http://localhost:7084/swagger-ui.html"
 echo    "  Backend     audit-service        7085    http://localhost:7085/swagger-ui.html"
-echo    "  Frontend    healthcare-ui        5002    http://localhost:5002"
+echo    "  Frontend    healthcare-ui        5001    http://localhost:5001"
 echo    "  Database    PostgreSQL           5432    healthdb"
 echo ""
-echo -e "  ${BOLD}${GREEN}▶  Login URL : http://localhost:5002/login/admin${RESET}"
+echo -e "  ${BOLD}${GREEN}▶  Login URL : http://localhost:5001/login/admin${RESET}"
 echo ""
 echo -e "  Run log saved to: $RUNLOG"
 echo ""

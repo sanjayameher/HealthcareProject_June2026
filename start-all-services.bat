@@ -6,13 +6,13 @@ REM  Healthcare Platform — Full Start Script (Windows)
 REM  Branch : main
 REM
 REM  Steps:
-REM    [1]  Stop running services (ports 7081-7085, 5002)
+REM    [1]  Stop running services (ports 7081-7085, 5001)
 REM    [2]  Git pull latest code from branch main
 REM    [3]  Compile Frontend  (npm ci + tsc)
 REM    [4]  Compile Backend   (mvn package -DskipTests)
 REM    [5]  Verify Flyway migration scripts
 REM    [6]  Start Backend services
-REM    [7]  Start Frontend dev server (port 5002)
+REM    [7]  Start Frontend dev server (port 5001)
 REM    [8]  Open all URLs in Chrome
 REM
 REM  Port Map:
@@ -21,7 +21,7 @@ REM    7082  clinical-service
 REM    7083  billing-service
 REM    7084  portal-service
 REM    7085  audit-service
-REM    5002  healthcare-ui (Vite)
+REM    5001  healthcare-ui (Vite)
 REM    5432  PostgreSQL (healthdb)
 REM ================================================================
 
@@ -50,12 +50,12 @@ echo  Log file: %RUNLOG%
 echo.
 
 REM ════════════════════════════════════════════════════════════════
-REM  STEP 1 — Stop running services on ports 7081-7085 and 5002
+REM  STEP 1 — Stop running services on ports 7081-7085 and 5001
 REM ════════════════════════════════════════════════════════════════
 echo  [STEP 1/7]  Stopping existing services...
 echo  ---------------------------------------------------------------
 
-for %%P in (7081 7082 7083 7084 7085 5002) do (
+for %%P in (7081 7082 7083 7084 7085 5001) do (
     echo   Checking port %%P ...
     for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr /r ":%%P " ^| findstr "LISTENING"') do (
         if not "%%a"=="" (
@@ -254,14 +254,14 @@ timeout /t 60 /nobreak >nul
 REM ════════════════════════════════════════════════════════════════
 REM  STEP 7 — Start Frontend Dev Server
 REM ════════════════════════════════════════════════════════════════
-echo  [STEP 7/7]  Starting Frontend (Vite dev server — port 5002)...
+echo  [STEP 7/7]  Starting Frontend (Vite dev server — port 5001)...
 echo  ---------------------------------------------------------------
-start "healthcare-ui     :5002" /min cmd /k "cd /d "%FRONTEND%" && npm run dev"
+start "healthcare-ui     :5001" /min cmd /k "cd /d "%FRONTEND%" && npm run dev"
 
-echo   Waiting for Vite dev server to be ready on port 5002...
+echo   Waiting for Vite dev server to be ready on port 5001...
 set /a WAIT_COUNT=0
 :WAIT_LOOP
-netstat -aon 2>nul | findstr /r ":5002 " | findstr "LISTENING" >nul 2>&1
+netstat -aon 2>nul | findstr /r ":5001 " | findstr "LISTENING" >nul 2>&1
 if %errorlevel% equ 0 goto VITE_READY
 set /a WAIT_COUNT+=1
 if %WAIT_COUNT% geq 30 (
@@ -286,8 +286,8 @@ set CHROME="C:\Program Files\Google\Chrome\Application\chrome.exe"
 if not exist %CHROME% set CHROME="C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 
 if exist %CHROME% (
-    echo   Opening Login Page         ^> http://localhost:5002/login/admin
-    start "" %CHROME% --new-tab "http://localhost:5002/login/admin"
+    echo   Opening Login Page         ^> http://localhost:5001/login/admin
+    start "" %CHROME% --new-tab "http://localhost:5001/login/admin"
     timeout /t 1 /nobreak >nul
     echo   Opening patient-service    ^> http://localhost:7081/swagger-ui.html
     start "" %CHROME% --new-tab "http://localhost:7081/swagger-ui.html"
@@ -305,7 +305,7 @@ if exist %CHROME% (
     start "" %CHROME% --new-tab "http://localhost:7085/swagger-ui.html"
 ) else (
     echo   [WARN] Chrome not found. Opening with default browser...
-    start "" "http://localhost:5002/login/admin"
+    start "" "http://localhost:5001/login/admin"
 )
 echo   [OK] All URLs opened.
 echo.
@@ -325,10 +325,10 @@ echo   Backend     clinical-service     7082    http://localhost:7082/swagger-ui
 echo   Backend     billing-service      7083    http://localhost:7083/swagger-ui.html
 echo   Backend     portal-service       7084    http://localhost:7084/swagger-ui.html
 echo   Backend     audit-service        7085    http://localhost:7085/swagger-ui.html
-echo   Frontend    healthcare-ui        5002    http://localhost:5002
+echo   Frontend    healthcare-ui        5001    http://localhost:5001
 echo   Database    PostgreSQL           5432    healthdb
 echo.
-echo   Login URL  : http://localhost:5002/login/admin
+echo   Login URL  : http://localhost:5001/login/admin
 echo   Run log    : %RUNLOG%
 echo.
 echo   (Each service runs in its own minimized window.)
