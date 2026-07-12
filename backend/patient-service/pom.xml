@@ -52,6 +52,11 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
+        <!-- REQUIRED in Flyway 10+: PostgreSQL support is a separate artifact -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
 
         <!-- Service Discovery -->
         <dependency>

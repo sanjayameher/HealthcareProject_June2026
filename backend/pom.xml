@@ -38,6 +38,8 @@
         <testcontainers.version>1.20.1</testcontainers.version>
         <jjwt.version>0.12.6</jjwt.version>
         <problem-spring.version>0.29.1</problem-spring.version>
+        <!-- Flyway 10.20.1+ required for PostgreSQL 16.x support -->
+        <flyway.version>10.20.1</flyway.version>
     </properties>
 
     <dependencyManagement>
@@ -86,6 +88,19 @@
                 <version>${testcontainers.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- Flyway: override Spring Boot bundled version; PostgreSQL 16.x needs 10.20.1+ -->
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <!-- flyway-database-postgresql is a REQUIRED separate artifact in Flyway 10+ -->
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-postgresql</artifactId>
+                <version>${flyway.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
