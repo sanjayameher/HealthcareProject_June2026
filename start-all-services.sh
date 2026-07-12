@@ -4,22 +4,22 @@
 #  Branch : main
 #
 #  Steps:
-#    [1]  Stop any running services (ports 7080-7085, 5000)
+#    [1]  Stop running services (ports 7081-7085, 5002)
 #    [2]  Git pull latest code from branch main
 #    [3]  Compile Frontend  (npm ci + tsc --noEmit)
 #    [4]  Compile Backend   (mvn package -DskipTests)
 #    [5]  Verify Flyway migration scripts
-#    [6]  Start Backend services  (ports 7080-7085)
-#    [7]  Start Frontend dev server (port 5000)
+#    [6]  Start Backend services  (ports 7081-7085)
+#    [7]  Start Frontend dev server (port 5002)
 #
-#  Ports:
-#    8080  api-gateway
-#    8081  patient-service
-#    8082  clinical-service
-#    8083  billing-service
-#    8084  portal-service
-#    8085  audit-service
-#    5000  healthcare-ui (Vite)
+#  Port Map:
+#    7081  patient-service
+#    7082  clinical-service
+#    7083  billing-service
+#    7084  portal-service
+#    7085  audit-service
+#    5002  healthcare-ui (Vite)
+#    5432  PostgreSQL (healthdb)
 # ================================================================
 
 # ── Resolve project root (directory containing this script) ──────
@@ -66,11 +66,11 @@ echo -e " Log file: $RUNLOG"
 echo ""
 
 # ════════════════════════════════════════════════════════════════
-#  STEP 1 — Kill processes on ports 7080-7085 and 5000
+#  STEP 1 — Kill processes on ports 7081-7085 and 5002
 # ════════════════════════════════════════════════════════════════
-step "[STEP 1/7]  Stopping existing services on ports 8080-8085 and 5000..."
+step "[STEP 1/7]  Stopping existing services on ports 7081-7085 and 5002..."
 
-for PORT in 8080 8081 8082 8083 8084 8085 5000; do
+for PORT in 7081 7082 7083 7084 7085 5002; do
     PID=$(lsof -ti tcp:$PORT 2>/dev/null)
     if [ -n "$PID" ]; then
         echo -e "  ${YELLOW}[KILL]${RESET}  Port $PORT — PID $PID — terminating..."
@@ -89,7 +89,6 @@ ok "All old processes cleared."
 step "[STEP 2/7]  Git pull — branch: $BRANCH"
 cd "$ROOT" || abort "Cannot cd to project root: $ROOT"
 
-# Check git is available
 command -v git &>/dev/null || abort "git not found. Install Xcode Command Line Tools: xcode-select --install"
 
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
@@ -203,39 +202,37 @@ start_service() {
     osascript -e "tell application \"Terminal\" to do script \"echo '=== $NAME :$PORT ==='; cd \\\"$DIR\\\" && $MVN_RUN\"" &>/dev/null
 }
 
-start_service "patient-service"  "$BACKEND/patient-service"  8081
+start_service "patient-service"  "$BACKEND/patient-service"  7081
 sleep 8
 
-start_service "clinical-service" "$BACKEND/clinical-service" 8082
+start_service "clinical-service" "$BACKEND/clinical-service" 7082
 sleep 5
 
-start_service "billing-service"  "$BACKEND/billing-service"  8083
+start_service "billing-service"  "$BACKEND/billing-service"  7083
 sleep 5
 
-start_service "portal-service"   "$BACKEND/portal-service"   8084
+start_service "portal-service"   "$BACKEND/portal-service"   7084
 sleep 5
 
-start_service "audit-service"    "$BACKEND/audit-service"    8085
+start_service "audit-service"    "$BACKEND/audit-service"    7085
 sleep 5
-
-start_service "api-gateway"      "$BACKEND/api-gateway"      8080
 
 echo ""
-ok "All 6 backend service windows opened."
+ok "All 5 backend service windows opened."
 echo "  Waiting 60 seconds for services to fully initialize..."
 sleep 60
 
 # ════════════════════════════════════════════════════════════════
 #  STEP 7 — Start Frontend Dev Server
 # ════════════════════════════════════════════════════════════════
-step "[STEP 7/7]  Starting Frontend (Vite dev server — port 5000)..."
-osascript -e "tell application \"Terminal\" to do script \"echo '=== healthcare-ui :5000 ==='; cd \\\"$FRONTEND\\\" && npm run dev\""
+step "[STEP 7/7]  Starting Frontend (Vite dev server — port 5002)..."
+osascript -e "tell application \"Terminal\" to do script \"echo '=== healthcare-ui :5002 ==='; cd \\\"$FRONTEND\\\" && npm run dev\""
 
-# ── Wait for Vite to be ready (poll port 5000) ────────────────────
-echo "  Waiting for Vite dev server to be ready on port 5000..."
+# ── Wait for Vite to be ready (poll port 5002) ────────────────────
+echo "  Waiting for Vite dev server to be ready on port 5002..."
 for i in $(seq 1 30); do
-    if lsof -ti tcp:5000 &>/dev/null; then
-        ok "Frontend is up on port 5000."
+    if lsof -ti tcp:5002 &>/dev/null; then
+        ok "Frontend is up on port 5002."
         break
     fi
     echo "  Still waiting... ($i/30)"
@@ -258,16 +255,12 @@ open_chrome() {
     sleep 1
 }
 
-# Open Login page first (primary tab)
-open_chrome "http://localhost:5000/login/admin"          "Login Page"
-# Open API Gateway health
-open_chrome "http://localhost:8080/actuator/health"      "API Gateway Health"
-# Open each service Swagger UI
-open_chrome "http://localhost:8081/swagger-ui.html"      "patient-service  Swagger"
-open_chrome "http://localhost:8082/swagger-ui.html"      "clinical-service Swagger"
-open_chrome "http://localhost:8083/swagger-ui.html"      "billing-service  Swagger"
-open_chrome "http://localhost:8084/swagger-ui.html"      "portal-service   Swagger"
-open_chrome "http://localhost:8085/swagger-ui.html"      "audit-service    Swagger"
+open_chrome "http://localhost:5002/login/admin"          "Login Page"
+open_chrome "http://localhost:7081/swagger-ui.html"      "patient-service  Swagger"
+open_chrome "http://localhost:7082/swagger-ui.html"      "clinical-service Swagger"
+open_chrome "http://localhost:7083/swagger-ui.html"      "billing-service  Swagger"
+open_chrome "http://localhost:7084/swagger-ui.html"      "portal-service   Swagger"
+open_chrome "http://localhost:7085/swagger-ui.html"      "audit-service    Swagger"
 
 ok "All URLs opened in Chrome."
 
@@ -279,17 +272,17 @@ echo -e "${BOLD}${GREEN}========================================================
 echo -e "${BOLD}${GREEN} All services are running!${RESET}"
 echo -e "${BOLD}${GREEN}================================================================${RESET}"
 echo ""
-echo -e "  ${BOLD}SERVICE              PORT    URL${RESET}"
-echo    "  ─────────────────────────────────────────────────────────"
-echo    "  api-gateway          8080    http://localhost:8080/actuator/health"
-echo    "  patient-service      8081    http://localhost:8081/swagger-ui.html"
-echo    "  clinical-service     8082    http://localhost:8082/swagger-ui.html"
-echo    "  billing-service      8083    http://localhost:8083/swagger-ui.html"
-echo    "  portal-service       8084    http://localhost:8084/swagger-ui.html"
-echo    "  audit-service        8085    http://localhost:8085/swagger-ui.html"
-echo    "  healthcare-ui        5000    http://localhost:5000"
+echo -e "  ${BOLD}LAYER       SERVICE              PORT    URL${RESET}"
+echo    "  ────────────────────────────────────────────────────────────────"
+echo    "  Backend     patient-service      7081    http://localhost:7081/swagger-ui.html"
+echo    "  Backend     clinical-service     7082    http://localhost:7082/swagger-ui.html"
+echo    "  Backend     billing-service      7083    http://localhost:7083/swagger-ui.html"
+echo    "  Backend     portal-service       7084    http://localhost:7084/swagger-ui.html"
+echo    "  Backend     audit-service        7085    http://localhost:7085/swagger-ui.html"
+echo    "  Frontend    healthcare-ui        5002    http://localhost:5002"
+echo    "  Database    PostgreSQL           5432    healthdb"
 echo ""
-echo -e "  ${BOLD}${GREEN}▶  Login URL : http://localhost:5000/login/admin${RESET}"
+echo -e "  ${BOLD}${GREEN}▶  Login URL : http://localhost:5002/login/admin${RESET}"
 echo ""
 echo -e "  Run log saved to: $RUNLOG"
 echo ""
