@@ -116,10 +116,14 @@ ok "Code is up to date."
 step "[STEP 3/7]  Compiling Frontend (npm ci + tsc --noEmit)..."
 cd "$FRONTEND" || abort "Frontend directory not found: $FRONTEND"
 
-command -v node &>/dev/null || abort "Node.js not found. Install from https://nodejs.org (v18+)"
+command -v node &>/dev/null || abort "Node.js not found. Install from https://nodejs.org (v20+)"
 NODE_VER=$(node --version)
 NPM_VER=$(npm --version)
+NODE_MAJOR=$(node --version | sed 's/v//' | cut -d. -f1)
 echo "  Node: $NODE_VER   npm: v$NPM_VER"
+if [ "$NODE_MAJOR" -lt 20 ]; then
+    abort "Node.js $NODE_VER is too old. Vite 8 requires Node 20+.\n  Run: brew unlink node@18 && brew link node@22 --force --overwrite"
+fi
 
 echo "  Installing / updating npm dependencies (ci)..."
 npm ci >> "$RUNLOG" 2>&1 || abort "npm ci failed."
