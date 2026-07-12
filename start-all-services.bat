@@ -126,12 +126,27 @@ cd /d "%FRONTEND%"
 
 node --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo   [ERROR] Node.js not found. Install from https://nodejs.org (v18+)
+    echo   [ERROR] Node.js not found. Install from https://nodejs.org (v20+)
     pause & exit /b 1
 )
 for /f "delims=" %%V in ('node --version') do set NODE_VER=%%V
 for /f "delims=" %%V in ('npm --version') do set NPM_VER=%%V
 echo   Node: %NODE_VER%   npm: v%NPM_VER%
+
+REM ── Enforce minimum Node 20 (Vite 8 / rolldown requires it) ─────
+for /f "tokens=1 delims=." %%M in ("%NODE_VER:v=%") do set NODE_MAJOR=%%M
+if %NODE_MAJOR% LSS 20 (
+    echo.
+    echo   [ERROR] Node.js %NODE_VER% is too old. Vite 8 requires Node 20 or higher.
+    echo.
+    echo   Fix (if installed via Homebrew / nvm^):
+    echo     brew unlink node ^& brew link node@22 --force --overwrite
+    echo     -- OR --
+    echo     nvm install 22 ^& nvm use 22
+    echo.
+    echo   Then re-run this script.
+    pause & exit /b 1
+)
 
 echo   Installing / updating npm dependencies (ci)...
 npm ci >> "%RUNLOG%" 2>&1
