@@ -1,24 +1,36 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, UserCheck, CalendarDays,
-  ClipboardList, LogOut, Heart, ChevronLeft, ChevronRight,
+  ClipboardList, LogOut, Heart, ChevronLeft, ChevronRight, Building2, ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUIStore } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
 
-const navItems = [
-  { to: '/admin/dashboard',       icon: LayoutDashboard, label: 'Dashboard',   end: true },
-  { to: '/admin/doctors',         icon: UserCheck,       label: 'Doctors' },
-  { to: '/admin/patients',        icon: Users,           label: 'Patients' },
-  { to: '/admin/appointments/new',icon: CalendarDays,    label: 'Book Appt' },
-  { to: '/admin/queue',           icon: ClipboardList,   label: 'Today\'s Queue' },
+type NavItem = {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  end?: boolean;
+  superAdminOnly?: boolean;
+};
+
+const allNavItems: NavItem[] = [
+  { to: '/admin/dashboard',        icon: LayoutDashboard, label: 'Dashboard',     end: true },
+  { to: '/admin/accounts',         icon: ShieldCheck,     label: 'Admins',        superAdminOnly: true },
+  { to: '/admin/doctors',          icon: UserCheck,       label: 'Doctors' },
+  { to: '/admin/patients',         icon: Users,           label: 'Patients' },
+  { to: '/organizations',          icon: Building2,       label: 'Organizations' },
+  { to: '/admin/appointments/new', icon: CalendarDays,    label: 'Book Appt' },
+  { to: '/admin/queue',            icon: ClipboardList,   label: "Today's Queue" },
 ];
 
 export function AdminLayout() {
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+
+  const navItems = allNavItems.filter((item) => !item.superAdminOnly || user?.superAdmin);
 
   const handleLogout = () => { logout(); navigate('/admin/login'); };
 

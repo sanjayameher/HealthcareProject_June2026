@@ -7,6 +7,8 @@ import com.healthcare.portal.repository.PatientViewRepository;
 import com.healthcare.portal.repository.PractitionerViewRepository;
 import com.healthcare.portal.service.AdminManagementService;
 import com.healthcare.portal.service.AppointmentBookingService;
+
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,16 +35,37 @@ public class AdminManagementController {
     private final PractitionerViewRepository practitionerRepo;
     private final PatientViewRepository patientRepo;
 
-    // ── Admin account creation (super-admin only) ────────────────
+    // ── Admin account management (super-admin only) ──────────────
+
+    @GetMapping("/accounts")
+    @Operation(summary = "List all admin accounts")
+    public ResponseEntity<ApiResponse<List<AdminAccountResponse>>> listAdmins() {
+        return ResponseEntity.ok(ApiResponse.ok(adminService.listAdmins()));
+    }
 
     @PostMapping("/accounts")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create a new admin account (super-admin only)")
-    public ResponseEntity<ApiResponse<AdminAccount>> createAdmin(
+    @Operation(summary = "Onboard a new admin account")
+    public ResponseEntity<ApiResponse<InviteResponse>> createAdmin(
             @Valid @RequestBody CreateAdminRequest req,
             @RequestHeader(value = "X-User-Id", required = false) UUID currentAdminId) {
-        AdminAccount created = adminService.createAdmin(req, currentAdminId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(created));
+        InviteResponse invite = adminService.createAdmin(req, currentAdminId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(invite));
+    }
+
+    @PatchMapping("/accounts/{id}/toggle")
+    @Operation(summary = "Activate or deactivate an admin account")
+    public ResponseEntity<ApiResponse<Void>> toggleAdmin(
+            @PathVariable UUID id,
+            @RequestParam boolean active) {
+        adminService.toggleAdmin(id, active);
+        return ResponseEntity.ok(ApiResponse.ok(null, active ? "Admin activated" : "Admin deactivated"));
+    }
+
+    @PostMapping("/accounts/{id}/resend-invite")
+    @Operation(summary = "Regenerate set-password link for an admin")
+    public ResponseEntity<ApiResponse<InviteResponse>> resendAdminInvite(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok(adminService.regenerateAdminInvite(id), "Invite link regenerated"));
     }
 
     // ── Dashboard stats ──────────────────────────────────────────

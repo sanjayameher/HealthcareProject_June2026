@@ -65,7 +65,7 @@ public record CreatePatientRequest(
             @Pattern(regexp = "[A-Z]{2}", message = "State must be 2-letter code")
             String state,
 
-            @Pattern(regexp = "\\d{5}(-\\d{4})?", message = "Invalid postal code")
+            @Size(max = 10, message = "Postal code must be 10 characters or fewer")
             String postalCode,
 
             String country

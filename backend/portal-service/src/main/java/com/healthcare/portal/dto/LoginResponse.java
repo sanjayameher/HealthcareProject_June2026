@@ -7,5 +7,6 @@ public record LoginResponse(
         String role,
         UUID userId,
         String fullName,
-        boolean mustChangePassword
+        boolean mustChangePassword,
+        boolean superAdmin
 ) {}

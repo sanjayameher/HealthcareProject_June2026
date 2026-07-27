@@ -23,7 +23,7 @@ const STEPS = ['Basic Info', 'Name', 'Contact', 'Address', 'Review'];
 
 const basicSchema = z.object({
   gender: z.enum(['male', 'female', 'other', 'unknown'], {
-    required_error: 'Gender is required',
+    error: 'Gender is required',
   }),
   birthDate: z
     .string()
@@ -43,41 +43,62 @@ const nameSchema = z.object({
 
 const contactSchema = z.object({
   phone: z.string().optional(),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.string().optional().refine(
+    (v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    'Invalid email address'
+  ),
 });
 
 // Address is fully optional — but if any field is filled, enforce backend rules
 const addressSchema = z
   .object({
-    line1: z.string().optional(),
-    line2: z.string().optional(),
-    city: z.string().optional(),
-    // Backend: @Pattern(regexp = "[A-Z]{2}")
+    line1:      z.string().max(500).optional(),
+    line2:      z.string().max(500).optional(),
+    city:       z.string().max(100).optional(),
+    // DB: VARCHAR(2) — must be 2-letter ISO 3166-2 subdivision code
     state: z
       .string()
       .optional()
       .refine(
         (s) => !s || /^[A-Z]{2}$/.test(s),
-        'State must be exactly 2 uppercase letters (e.g. TX)'
+        'State must be exactly 2 uppercase letters (e.g. TX, KA)'
       ),
-    // Backend: @Pattern(regexp = "\\d{5}(-\\d{4})?")
+    // DB: VARCHAR(10) — max 10 chars; US format enforced by DB when country=US
     postalCode: z
       .string()
       .optional()
       .refine(
-        (p) => !p || /^\d{5}(-\d{4})?$/.test(p),
-        'Postal code must be 5 digits (e.g. 75019)'
+        (p) => !p || p.length <= 10,
+        'Postal code must be 10 characters or fewer'
       ),
-    country: z.string().optional(),
+    // DB: VARCHAR(2) NOT NULL DEFAULT 'US' — ISO 3166-1 alpha-2
+    country: z
+      .string()
+      .optional()
+      .refine(
+        (c) => !c || /^[A-Z]{2}$/.test(c),
+        'Country must be a 2-letter ISO code (e.g. IN, US, GB)'
+      ),
   })
   .refine(
     (a) => {
       // If any address field is provided, both line1 and city are required
-      const hasAny = a.line1 || a.city || a.state || a.postalCode;
+      const hasAny = a.line1 || a.city || a.state || a.postalCode || a.country;
       if (hasAny) return !!a.line1 && !!a.city;
       return true;
     },
     { message: 'Street address and city are required when adding an address', path: ['line1'] }
+  )
+  .refine(
+    (a) => {
+      // DB check constraint: if country=US, postal code must be US ZIP format
+      const country = a.country?.toUpperCase() || 'US';
+      if (country === 'US' && a.postalCode) {
+        return /^\d{5}(-\d{4})?$/.test(a.postalCode);
+      }
+      return true;
+    },
+    { message: 'US postal codes must be 5 digits (e.g. 75019 or 75019-1234)', path: ['postalCode'] }
   );
 
 type BasicForm = z.infer<typeof basicSchema>;
@@ -346,28 +367,42 @@ export function PatientRegisterPage() {
               <FormField
                 label="Street Address (Line 1)"
                 error={addressForm.formState.errors.line1?.message}
+                hint="Flat/house number, street name"
               >
                 <Input
-                  placeholder="123 Main St"
+                  placeholder="Flat 115, Friends Nest Apartment"
+                  maxLength={500}
                   {...addressForm.register('line1')}
                 />
               </FormField>
 
-              <FormField label="Street Address (Line 2)">
-                <Input placeholder="Apt 4B, Suite 200" {...addressForm.register('line2')} />
+              <FormField
+                label="Street Address (Line 2)"
+                error={addressForm.formState.errors.line2?.message}
+                hint="Area, landmark (optional)"
+              >
+                <Input
+                  placeholder="Near RTO Office, Medahalli"
+                  maxLength={500}
+                  {...addressForm.register('line2')}
+                />
               </FormField>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField label="City" error={addressForm.formState.errors.city?.message}>
-                  <Input placeholder="Coppell" {...addressForm.register('city')} />
+                  <Input
+                    placeholder="Bangalore"
+                    maxLength={100}
+                    {...addressForm.register('city')}
+                  />
                 </FormField>
                 <FormField
-                  label="State"
+                  label="State / Province"
                   error={addressForm.formState.errors.state?.message}
-                  hint="2-letter code e.g. TX"
+                  hint="2-letter code e.g. KA, TX, NY"
                 >
                   <Input
-                    placeholder="TX"
+                    placeholder="KA"
                     maxLength={2}
                     {...addressForm.register('state', {
                       onChange: (e) => {
@@ -382,16 +417,28 @@ export function PatientRegisterPage() {
                 <FormField
                   label="Postal Code"
                   error={addressForm.formState.errors.postalCode?.message}
-                  hint="5-digit ZIP e.g. 75019"
+                  hint="Max 10 chars — e.g. 560004 (IN) or 75019 (US)"
                 >
                   <Input
-                    placeholder="75019"
+                    placeholder="560004"
                     maxLength={10}
                     {...addressForm.register('postalCode')}
                   />
                 </FormField>
-                <FormField label="Country">
-                  <Input placeholder="US" {...addressForm.register('country')} />
+                <FormField
+                  label="Country"
+                  error={addressForm.formState.errors.country?.message}
+                  hint="2-letter ISO code e.g. IN, US, GB (default: US)"
+                >
+                  <Input
+                    placeholder="IN"
+                    maxLength={2}
+                    {...addressForm.register('country', {
+                      onChange: (e) => {
+                        e.target.value = e.target.value.toUpperCase();
+                      },
+                    })}
+                  />
                 </FormField>
               </div>
 

@@ -66,7 +66,7 @@ public class AuthService {
         adminRepo.save(account);
 
         String token = jwtTokenService.generateToken(account.getId(), "ADMIN", account.getEmail());
-        return new LoginResponse(token, "ADMIN", account.getId(), account.getFullName(), account.isMustChangePassword());
+        return new LoginResponse(token, "ADMIN", account.getId(), account.getFullName(), account.isMustChangePassword(), account.isSuperAdmin());
     }
 
     // ── Doctor Login ─────────────────────────────────────────────
@@ -102,7 +102,7 @@ public class AuthService {
         String fullName = (prac.getPrefix() != null ? prac.getPrefix() + " " : "")
                 + prac.getGivenName() + " " + prac.getFamilyName();
         String token = jwtTokenService.generateToken(account.getPractitionerId(), "CLINICIAN", account.getEmail());
-        return new LoginResponse(token, "CLINICIAN", account.getPractitionerId(), fullName.trim(), account.isMustChangePassword());
+        return new LoginResponse(token, "CLINICIAN", account.getPractitionerId(), fullName.trim(), account.isMustChangePassword(), false);
     }
 
     // ── Patient Login ────────────────────────────────────────────
@@ -133,7 +133,7 @@ public class AuthService {
         patientAccountRepo.save(account);
 
         String token = jwtTokenService.generateToken(account.getPatientId(), "PATIENT", account.getEmail());
-        return new LoginResponse(token, "PATIENT", account.getPatientId(), "Patient", account.isMustChangePassword());
+        return new LoginResponse(token, "PATIENT", account.getPatientId(), "Patient", account.isMustChangePassword(), false);
     }
 
     // ── Set Password (doctor / patient via one-time token) ───────
@@ -165,6 +165,16 @@ public class AuthService {
         AdminAccount account = adminRepo.findById(adminId)
                 .orElseThrow(() -> new EntityNotFoundException("Admin account not found"));
         account.setPasswordHash(passwordEncoder.encode(newPassword));
+        account.setMustChangePassword(false);
+        adminRepo.save(account);
+    }
+
+    @Transactional
+    public void setAdminPasswordByToken(SetPasswordRequest req) {
+        UUID adminId = jwtTokenService.extractUserId(req.token());
+        AdminAccount account = adminRepo.findById(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("Admin account not found"));
+        account.setPasswordHash(passwordEncoder.encode(req.newPassword()));
         account.setMustChangePassword(false);
         adminRepo.save(account);
     }

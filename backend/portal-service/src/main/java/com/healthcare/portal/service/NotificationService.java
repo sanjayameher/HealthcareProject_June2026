@@ -1,45 +1,38 @@
 package com.healthcare.portal.service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
 
-    @PersistenceContext
-    private EntityManager em;
+    private final DataSource dataSource;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void notifyPatient(UUID patientId, String type, String title, String body) {
-        try {
-            em.createNativeQuery("""
-                    INSERT INTO dev.notifications
-                        (id, patient_id, channel, status, notification_type, title, body,
-                         scheduled_for, created_at, updated_at)
-                    VALUES
-                        (gen_random_uuid(), :patientId, 'email', 'pending', :type, :title, :body,
-                         NOW(), NOW(), NOW())
-                    """)
-                    .setParameter("patientId", patientId)
-                    .setParameter("type", type)
-                    .setParameter("title", title)
-                    .setParameter("body", body)
-                    .executeUpdate();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "INSERT INTO dev.notifications " +
+                     "(patient_id, channel, status, notification_type, title, body, scheduled_for, created_at, updated_at) " +
+                     "VALUES (?, 'email'::dev.notification_channel, 'pending'::dev.notification_status, ?, ?, ?, NOW(), NOW(), NOW())")) {
+            ps.setObject(1, patientId);
+            ps.setString(2, type);
+            ps.setString(3, title);
+            ps.setString(4, body);
+            ps.executeUpdate();
         } catch (Exception e) {
             log.warn("Could not save patient notification [patientId={}, type={}]: {}", patientId, type, e.getMessage());
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void notifyPractitioner(UUID practitionerId, String type, String title, String body) {
-        // Notifications table is patient-scoped; practitioner notifications are logged only until schema is extended
         log.info("Practitioner notification [practitionerId={}, type={}, title={}]", practitionerId, type, title);
     }
 }

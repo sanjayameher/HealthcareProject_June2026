@@ -22,7 +22,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 interface SetPasswordPageProps {
-  role: 'doctor' | 'patient';
+  role: 'admin' | 'doctor' | 'patient';
 }
 
 export function SetPasswordPage({ role }: SetPasswordPageProps) {
@@ -35,15 +35,19 @@ export function SetPasswordPage({ role }: SetPasswordPageProps) {
     resolver: zodResolver(schema),
   });
 
-  const mutationFn = role === 'doctor'
-    ? (d: FormData) => portalApi.setDoctorPassword(token, d.newPassword)
-    : (d: FormData) => portalApi.setPatientPassword(token, d.newPassword);
+  const mutationFn =
+    role === 'admin'   ? (d: FormData) => portalApi.setAdminPassword(token, d.newPassword)  :
+    role === 'doctor'  ? (d: FormData) => portalApi.setDoctorPassword(token, d.newPassword) :
+                         (d: FormData) => portalApi.setPatientPassword(token, d.newPassword);
+
+  const loginPath =
+    role === 'admin' ? '/login/admin' : role === 'doctor' ? '/login/doctor' : '/login/patient';
 
   const mutation = useMutation({
     mutationFn,
     onSuccess: () => {
       toast.success('Password set successfully. Please log in.');
-      navigate(role === 'doctor' ? '/login/doctor' : '/login/patient');
+      navigate(loginPath);
     },
     onError: (err: Error) => toast.error(err.message),
   });

@@ -9,6 +9,7 @@ export interface AuthUser {
   userId: string;
   fullName: string;
   mustChangePassword: boolean;
+  superAdmin?: boolean;
 }
 
 interface AuthStore {

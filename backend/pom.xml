@@ -26,6 +26,7 @@
         <module>billing-service</module>
         <module>portal-service</module>
         <module>audit-service</module>
+        <module>cds-service</module>
     </modules>
 
     <properties>

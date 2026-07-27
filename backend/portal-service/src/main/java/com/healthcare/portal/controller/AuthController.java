@@ -48,6 +48,13 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(resp, "Login successful"));
     }
 
+    @PostMapping("/admin/set-password")
+    @Operation(summary = "Set initial password for an admin using one-time invite token")
+    public ResponseEntity<ApiResponse<Void>> setAdminPassword(@Valid @RequestBody SetPasswordRequest req) {
+        authService.setAdminPasswordByToken(req);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Password updated successfully"));
+    }
+
     @PostMapping("/doctor/set-password")
     @Operation(summary = "Set initial password for a doctor using one-time token")
     public ResponseEntity<ApiResponse<Void>> setDoctorPassword(@Valid @RequestBody SetPasswordRequest req) {

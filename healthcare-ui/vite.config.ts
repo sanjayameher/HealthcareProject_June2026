@@ -37,6 +37,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/portal-svc/, ''),
       },
+      '/cds-svc': {
+        target: 'http://localhost:7086',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/cds-svc/, ''),
+      },
     },
   },
 });

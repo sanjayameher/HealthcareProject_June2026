@@ -33,7 +33,7 @@ export function AdminLoginPage() {
   const mutation = useMutation({
     mutationFn: portalApi.adminLogin,
     onSuccess: (data) => {
-      login({ token: data.token, role: data.role, userId: data.userId, fullName: data.fullName, mustChangePassword: data.mustChangePassword });
+      login({ token: data.token, role: data.role, userId: data.userId, fullName: data.fullName, mustChangePassword: data.mustChangePassword, superAdmin: data.superAdmin });
       toast.success(`Welcome, ${data.fullName}`);
       navigate('/admin/dashboard');
     },

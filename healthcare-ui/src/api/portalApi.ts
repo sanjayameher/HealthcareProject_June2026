@@ -9,6 +9,8 @@ import type {
   AvailabilitySlot,
   AvailabilitySlotRequest,
   CreateAdminRequest,
+  AdminAccountInfo,
+  InviteResponse,
   UpdateAppointmentStatusRequest,
   Practitioner,
 } from '@/types';
@@ -17,6 +19,7 @@ import { useAuthStore } from '@/store/authStore';
 const portalAxios = axios.create({
   baseURL: '/portal-svc/api/v1',
   headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
 });
 
 // Attach JWT to every request
@@ -53,11 +56,27 @@ export const portalApi = {
   patientLogin: (data: LoginRequest) =>
     portalAxios.post<ApiResponse<LoginResponse>>('/auth/patient/login', data).then(unwrap),
 
+  setAdminPassword: (token: string, newPassword: string) =>
+    portalAxios.post<ApiResponse<void>>('/auth/admin/set-password', { token, newPassword }).then(unwrap),
+
   setDoctorPassword: (token: string, newPassword: string) =>
     portalAxios.post<ApiResponse<void>>('/auth/doctor/set-password', { token, newPassword }).then(unwrap),
 
   setPatientPassword: (token: string, newPassword: string) =>
     portalAxios.post<ApiResponse<void>>('/auth/patient/set-password', { token, newPassword }).then(unwrap),
+
+  // ── Admin: Admin accounts (super-admin onboarding) ───────────────────────────
+  listAdmins: () =>
+    portalAxios.get<ApiResponse<AdminAccountInfo[]>>('/admin/accounts').then(unwrap),
+
+  createAdmin: (data: CreateAdminRequest) =>
+    portalAxios.post<ApiResponse<InviteResponse>>('/admin/accounts', data).then(unwrap),
+
+  toggleAdmin: (id: string, active: boolean) =>
+    portalAxios.patch<ApiResponse<void>>(`/admin/accounts/${id}/toggle`, null, { params: { active } }).then(unwrap),
+
+  resendAdminInvite: (id: string) =>
+    portalAxios.post<ApiResponse<InviteResponse>>(`/admin/accounts/${id}/resend-invite`).then(unwrap),
 
   // ── Admin: Dashboard stats ───────────────────────────────────────────────────
   getAdminStats: () =>

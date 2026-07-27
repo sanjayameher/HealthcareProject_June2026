@@ -21,7 +21,18 @@
       "Bash(npm install *)",
       "Bash(npx tailwindcss *)",
       "Bash(grep -E \"\\\\.java$\")",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Read(//c/Users/sanja/AppData/Local/Temp/claude/c--SANJAYA-PROJECT-HealthcareProject/fa86e2de-f927-46a8-96f7-e60f3f16ab59/tasks/**)",
+      "Bash(sleep 2)",
+      "Bash(echo \"=== matched lines ===\")",
+      "PowerShell(winget install --id Microsoft.VisualStudio.2022.BuildTools -e --silent --accept-package-agreements --accept-source-agreements --override \"--wait --quiet --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended\")",
+      "Bash(\"/c/SANJAYA/MAVEN/apache-maven-3.9.16-bin/apache-maven-3.9.16/bin/mvn.cmd\" spring-boot:run \"-Dspring-boot.run.profiles=local\")",
+      "Bash(export PGPASSWORD=\"Aman2011\\\\$\")",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h 127.0.0.1 -U postgres -d healthdb -c \"SELECT source_ref, 1 - \\(embedding <=> embedding\\) AS self_similarity FROM dev.cds_knowledge_chunks LIMIT 3;\")",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h 127.0.0.1 -U postgres -d healthdb -c \"SELECT id, patient_id, doctor_id, diagnosis_codes, drugs, notes, confirmed_at, created_at FROM dev.prescriptions ORDER BY created_at DESC LIMIT 3;\")",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" run dev)",
+      "Bash(command -v powershell.exe)",
+      "Bash(:)"
     ]
   }
 }

@@ -334,6 +334,7 @@ export interface LoginResponse {
   userId: string;
   fullName: string;
   mustChangePassword: boolean;
+  superAdmin: boolean;
 }
 
 // ─── Appointment (Portal) ──────────────────────────────────────────────────────
@@ -402,6 +403,27 @@ export interface CreateAdminRequest {
   password?: string;
 }
 
+export interface AdminAccountInfo {
+  id: string;
+  email: string;
+  fullName: string;
+  superAdmin: boolean;
+  active: boolean;
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+  failedLoginAttempts: number;
+  lockedUntil: string | null;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InviteResponse {
+  accountId: string;
+  role: string;
+  inviteToken: string;
+}
+
 export interface CreateDoctorAccountRequest {
   email: string;
 }
@@ -409,4 +431,77 @@ export interface CreateDoctorAccountRequest {
 export interface UpdateAppointmentStatusRequest {
   status: AppointmentStatus;
   reassignPractitionerId?: string;
+}
+
+// ─── Clinical Decision Support (CDS) ───────────────────────────────────────────
+
+export interface VitalSigns {
+  bp?: string;
+  hr?: string;
+  temp?: string;
+  spo2?: string;
+  weight?: string;
+}
+
+export interface DiagnosisInputRequest {
+  patientId: string;
+  chiefComplaint: string;
+  symptoms?: string[];
+  vitalSigns?: VitalSigns;
+  currentMedications?: string;
+  knownAllergies?: string;
+  clinicalNotes?: string;
+}
+
+export interface DifferentialDiagnosis {
+  icd10Code: string;
+  display: string;
+  confidencePct: number;
+  rationale: string;
+}
+
+export interface SuggestedDrug {
+  drugName: string;
+  dose: string;
+  frequency: string;
+  duration: string;
+  notes?: string;
+}
+
+export interface SourceChunk {
+  id: string;
+  sourceType: string;
+  sourceRef?: string;
+  content: string;
+  similarity: number;
+}
+
+export interface CdsResponse {
+  sessionId: string;
+  differentialDiagnoses: DifferentialDiagnosis[];
+  suggestedPrescription: SuggestedDrug[];
+  redFlags: string[];
+  sourceChunks: SourceChunk[];
+  disclaimer?: string;
+}
+
+export interface SavePrescriptionRequest {
+  sessionId?: string;
+  patientId: string;
+  diagnosisCodes?: string[];
+  drugs: SuggestedDrug[];
+  notes?: string;
+  accepted: boolean;
+}
+
+export interface Prescription {
+  id: string;
+  cdsSessionId?: string;
+  patientId: string;
+  doctorId: string;
+  diagnosisCodes?: string[];
+  drugs: SuggestedDrug[];
+  notes?: string;
+  confirmedAt?: string;
+  createdAt: string;
 }

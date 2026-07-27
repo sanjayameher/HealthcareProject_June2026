@@ -17,20 +17,7 @@ spring:
         default_schema: dev
 
   flyway:
-    enabled: true
-    # Local dev: use postgres superuser so V1 can create extensions & schema
-    user: postgres
-    password: "Aman2011$"
-    # Only run versioned migrations — testdata already seeded, skip to avoid duplicate key errors
-    locations: classpath:db/migration
-    schemas: dev
-    default-schema: dev
-    baseline-on-migrate: true
-    baseline-version: 0
-    placeholders-enabled: false
-    # Skip checksum validation — schema was pre-applied before Flyway tracking began
-    validate-on-migrate: false
-    out-of-order: true
+    enabled: false  # Schema already exists in DB - skip migrations for local dev
 
   autoconfigure:
     exclude:

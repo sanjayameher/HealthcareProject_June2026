@@ -4,6 +4,7 @@ import com.healthcare.portal.domain.entity.Appointment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -42,4 +43,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
             @Param("from") OffsetDateTime from,
             @Param("to") OffsetDateTime to,
             @Param("excluded") List<com.healthcare.portal.domain.enums.AppointmentStatus> excluded);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = """
+            UPDATE dev.appointments
+               SET status              = ?2::dev.appointment_status,
+                   cancellation_reason = ?3,
+                   version             = version + 1,
+                   updated_at          = NOW()
+             WHERE id = ?1
+            """, nativeQuery = true)
+    void cancelById(UUID id, String status, String reason);
 }

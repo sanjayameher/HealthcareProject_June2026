@@ -41,6 +41,7 @@ import { AdminDoctorListPage } from './pages/admin/doctors/AdminDoctorListPage';
 import { AdminDoctorCreatePage } from './pages/admin/doctors/AdminDoctorCreatePage';
 import { AdminDoctorCalendarPage } from './pages/admin/doctors/AdminDoctorCalendarPage';
 import { AdminPatientListPage } from './pages/admin/patients/AdminPatientListPage';
+import { AdminAccountsPage } from './pages/admin/accounts/AdminAccountsPage';
 import { BookAppointmentPage } from './pages/admin/appointments/BookAppointmentPage';
 
 // Doctor portal pages
@@ -48,6 +49,9 @@ import { DoctorDashboard } from './pages/doctor/DoctorDashboard';
 import { DoctorQueuePage } from './pages/doctor/DoctorQueuePage';
 import { DoctorCalendarPage } from './pages/doctor/DoctorCalendarPage';
 import { DoctorPrescriptionsPage } from './pages/doctor/DoctorPrescriptionsPage';
+import { DoctorPatientListPage } from './pages/doctor/DoctorPatientListPage';
+import { ClinicalChartPage } from './pages/doctor/chart/ClinicalChartPage';
+import { PrescriptionPrintPage } from './pages/doctor/chart/PrescriptionPrintPage';
 
 // Patient portal pages
 import { PatientDashboard } from './pages/patient/PatientDashboard';
@@ -97,6 +101,7 @@ export default function App() {
           <Route path="/login/admin"   element={<AdminLoginPage />} />
           <Route path="/login/doctor"  element={<DoctorLoginPage />} />
           <Route path="/login/patient" element={<PatientLoginPage />} />
+          <Route path="/admin/set-password"   element={<SetPasswordPage role="admin" />} />
           <Route path="/doctor/set-password"  element={<SetPasswordPage role="doctor" />} />
           <Route path="/patient/set-password" element={<SetPasswordPage role="patient" />} />
 
@@ -104,6 +109,7 @@ export default function App() {
           <Route element={<RouteGuard requiredRole="ADMIN" />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard"               element={<AdminDashboard />} />
+              <Route path="/admin/accounts"               element={<AdminAccountsPage />} />
               <Route path="/admin/doctors"                 element={<AdminDoctorListPage />} />
               <Route path="/admin/doctors/new"             element={<AdminDoctorCreatePage />} />
               <Route path="/admin/doctors/:id/calendar"    element={<AdminDoctorCalendarPage />} />
@@ -115,11 +121,14 @@ export default function App() {
 
           {/* ── Doctor portal ───────────────────────────────────────── */}
           <Route element={<RouteGuard requiredRole="CLINICIAN" />}>
+            <Route path="/doctor/prescriptions/:id/print" element={<PrescriptionPrintPage />} />
             <Route element={<DoctorLayout />}>
               <Route path="/doctor/dashboard"      element={<DoctorDashboard />} />
               <Route path="/doctor/queue"          element={<DoctorQueuePage />} />
               <Route path="/doctor/calendar"       element={<DoctorCalendarPage />} />
               <Route path="/doctor/prescriptions"  element={<DoctorPrescriptionsPage />} />
+              <Route path="/doctor/patients"       element={<DoctorPatientListPage />} />
+              <Route path="/doctor/chart/:patientId" element={<ClinicalChartPage />} />
             </Route>
           </Route>
 

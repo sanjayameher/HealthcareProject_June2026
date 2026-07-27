@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarDays, ClipboardList,
-  Pill, LogOut, Heart, ChevronLeft, ChevronRight,
+  Pill, LogOut, Heart, ChevronLeft, ChevronRight, Users,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUIStore } from '@/store/uiStore';
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/doctor/dashboard',     icon: LayoutDashboard, label: 'Dashboard',   end: true },
   { to: '/doctor/queue',         icon: ClipboardList,   label: 'My Queue' },
   { to: '/doctor/calendar',      icon: CalendarDays,    label: 'My Calendar' },
+  { to: '/doctor/patients',      icon: Users,           label: 'Patients' },
   { to: '/doctor/prescriptions', icon: Pill,            label: 'Prescriptions' },
 ];
 

@@ -2,9 +2,11 @@ package com.healthcare.portal.service;
 
 import com.healthcare.common.crypto.PhiEncryptionService;
 import com.healthcare.common.exception.ConflictException;
+import com.healthcare.common.exception.ResourceNotFoundException;
 import com.healthcare.portal.domain.entity.AdminAccount;
 import com.healthcare.portal.domain.entity.PatientAccount;
 import com.healthcare.portal.domain.entity.PractitionerAccount;
+import com.healthcare.portal.dto.AdminAccountResponse;
 import com.healthcare.portal.dto.CreateAdminRequest;
 import com.healthcare.portal.dto.InviteResponse;
 import com.healthcare.portal.repository.*;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -30,8 +33,14 @@ public class AdminManagementService {
 
     // ── Admin account management ─────────────────────────────────
 
+    public List<AdminAccountResponse> listAdmins() {
+        return adminRepo.findAll().stream()
+                .map(AdminAccountResponse::from)
+                .toList();
+    }
+
     @Transactional
-    public AdminAccount createAdmin(CreateAdminRequest req, UUID createdByAdminId) {
+    public InviteResponse createAdmin(CreateAdminRequest req, UUID createdByAdminId) {
         String email = req.email().toLowerCase().trim();
         if (adminRepo.existsByEmail(email)) {
             throw new ConflictException("Admin account with this email already exists");
@@ -48,7 +57,25 @@ public class AdminManagementService {
         account.setActive(true);
         account.setSuperAdmin(false);
         account.setCreatedBy(createdByAdminId);
-        return adminRepo.save(account);
+        account = adminRepo.save(account);
+
+        String inviteToken = jwtTokenService.generatePasswordResetToken(account.getId(), "ADMIN");
+        return new InviteResponse(account.getId(), "ADMIN", inviteToken);
+    }
+
+    @Transactional
+    public void toggleAdmin(UUID adminId, boolean active) {
+        AdminAccount account = adminRepo.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("AdminAccount", adminId));
+        account.setActive(active);
+        adminRepo.save(account);
+    }
+
+    public InviteResponse regenerateAdminInvite(UUID adminId) {
+        AdminAccount account = adminRepo.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("AdminAccount", adminId));
+        String inviteToken = jwtTokenService.generatePasswordResetToken(account.getId(), "ADMIN");
+        return new InviteResponse(account.getId(), "ADMIN", inviteToken);
     }
 
     // ── Doctor (practitioner) account management ─────────────────

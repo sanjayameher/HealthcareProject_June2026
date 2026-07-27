@@ -80,30 +80,34 @@ public class AppointmentBookingService {
     public Appointment cancelAppointment(UUID appointmentId) {
         Appointment apt = appointmentRepo.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", appointmentId));
+
+        // Native UPDATE: explicit enum cast + atomic version bump, bypasses @PreUpdate
+        appointmentRepo.cancelById(appointmentId, "cancelled", "Cancelled by user");
+
+        // Reflect the DB change on the in-memory object for callers
         apt.setStatus(AppointmentStatus.cancelled);
         apt.setCancellationReason("Cancelled by user");
-        final Appointment saved = appointmentRepo.save(apt);
 
         // Free up the slot
-        if (saved.getSlotId() != null) {
-            slotRepo.findById(saved.getSlotId()).ifPresent(slot -> {
+        if (apt.getSlotId() != null) {
+            slotRepo.findById(apt.getSlotId()).ifPresent(slot -> {
                 slot.setAvailable(true);
                 slotRepo.save(slot);
             });
         }
 
         // Cancellation notifications
-        notificationService.notifyPatient(saved.getPatientId(), "appointment_cancelled",
-                "Appointment Cancelled", "Your appointment on " + saved.getStartTime() + " has been cancelled.");
+        notificationService.notifyPatient(apt.getPatientId(), "appointment_cancelled",
+                "Appointment Cancelled", "Your appointment on " + apt.getStartTime() + " has been cancelled.");
 
         List<AppointmentParticipant> participants = participantRepo.findByAppointmentId(appointmentId);
         participants.stream()
                 .filter(p -> p.getActorPractitionerId() != null)
                 .forEach(p -> notificationService.notifyPractitioner(p.getActorPractitionerId(),
                         "appointment_cancelled", "Appointment Cancelled",
-                        "An appointment on " + saved.getStartTime() + " has been cancelled."));
+                        "An appointment on " + apt.getStartTime() + " has been cancelled."));
 
-        return saved;
+        return apt;
     }
 
     @Transactional
