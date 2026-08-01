@@ -46,6 +46,10 @@ cds:
     api-key: ${GROQ_API_KEY:}
     model: llama-3.3-70b-versatile
     max-tokens: 2048
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: claude-opus-5
+    max-tokens: 2048
   ollama:
     url: http://localhost:11434
     embedding-model: nomic-embed-text

@@ -2,9 +2,11 @@ package com.healthcare.cds.controller;
 
 import com.healthcare.cds.dto.request.DiagnosisInputRequest;
 import com.healthcare.cds.dto.request.SavePrescriptionRequest;
+import com.healthcare.cds.dto.request.SummarizeTranscriptRequest;
 import com.healthcare.cds.dto.response.CdsResponse;
 import com.healthcare.cds.dto.response.PrescriptionDto;
 import com.healthcare.cds.dto.response.PrescriptionResponse;
+import com.healthcare.cds.dto.response.SummarizeTranscriptResponse;
 import com.healthcare.cds.security.CdsJwtService;
 import com.healthcare.cds.service.CdsService;
 import com.healthcare.common.dto.ApiResponse;
@@ -41,6 +43,14 @@ public class CdsController {
         UUID doctorId = currentUserId(authHeader);
         CdsResponse response = cdsService.diagnose(request, doctorId, authHeader);
         return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    @PostMapping("/summarize-transcript")
+    @PreAuthorize("hasRole('CLINICIAN')")
+    @Operation(summary = "Summarize a raw voice-to-text conversation transcript into a concise chief complaint")
+    public ResponseEntity<ApiResponse<SummarizeTranscriptResponse>> summarizeTranscript(
+            @Valid @RequestBody SummarizeTranscriptRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(cdsService.summarizeTranscript(request)));
     }
 
     @PostMapping("/prescriptions")

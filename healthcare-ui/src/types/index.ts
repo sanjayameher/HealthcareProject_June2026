@@ -443,6 +443,14 @@ export interface VitalSigns {
   weight?: string;
 }
 
+export type LlmProvider = 'groq' | 'claude';
+
+export interface TestReportAttachment {
+  filename: string;
+  mimeType: string;
+  base64Data: string;
+}
+
 export interface DiagnosisInputRequest {
   patientId: string;
   chiefComplaint: string;
@@ -451,6 +459,8 @@ export interface DiagnosisInputRequest {
   currentMedications?: string;
   knownAllergies?: string;
   clinicalNotes?: string;
+  provider?: LlmProvider;
+  testReportAttachment?: TestReportAttachment;
 }
 
 export interface DifferentialDiagnosis {
@@ -483,6 +493,15 @@ export interface CdsResponse {
   redFlags: string[];
   sourceChunks: SourceChunk[];
   disclaimer?: string;
+}
+
+export interface SummarizeTranscriptRequest {
+  transcript: string;
+  provider?: LlmProvider;
+}
+
+export interface SummarizeTranscriptResponse {
+  chiefComplaint: string;
 }
 
 export interface SavePrescriptionRequest {

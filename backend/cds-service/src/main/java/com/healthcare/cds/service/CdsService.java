@@ -2,7 +2,9 @@ package com.healthcare.cds.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.healthcare.cds.client.AnthropicLlmClient;
 import com.healthcare.cds.client.GroqClient;
+import com.healthcare.cds.client.LlmClient;
 import com.healthcare.cds.client.OllamaEmbeddingClient;
 import com.healthcare.cds.client.PatientContextClient;
 import com.healthcare.cds.domain.entity.CdsDiagnoseSession;
@@ -12,12 +14,15 @@ import com.healthcare.cds.dto.internal.LlmCdsResult;
 import com.healthcare.cds.dto.internal.PatientClinicalContext;
 import com.healthcare.cds.dto.request.DiagnosisInputRequest;
 import com.healthcare.cds.dto.request.SavePrescriptionRequest;
+import com.healthcare.cds.dto.request.SummarizeTranscriptRequest;
+import com.healthcare.cds.dto.request.TestReportAttachmentDto;
 import com.healthcare.cds.dto.request.VitalSignsDto;
 import com.healthcare.cds.dto.response.CdsResponse;
 import com.healthcare.cds.dto.response.PrescriptionDto;
 import com.healthcare.cds.dto.response.PrescriptionResponse;
 import com.healthcare.cds.dto.response.SourceChunkDto;
 import com.healthcare.cds.dto.response.SuggestedDrugDto;
+import com.healthcare.cds.dto.response.SummarizeTranscriptResponse;
 import com.healthcare.cds.repository.CdsDiagnoseSessionRepository;
 import com.healthcare.cds.repository.KnowledgeChunkRepository;
 import com.healthcare.cds.repository.PrescriptionRepository;
@@ -25,12 +30,17 @@ import com.healthcare.common.exception.BusinessException;
 import com.healthcare.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -44,6 +54,10 @@ public class CdsService {
     // filtered out every real match; 0.45 was calibrated against actual scores.
     private static final double SIMILARITY_THRESHOLD = 0.45;
     private static final int TOP_K = 8;
+
+    private static final int MAX_ATTACHMENT_BYTES = 8 * 1024 * 1024;
+    private static final Set<String> ALLOWED_ATTACHMENT_MIME_TYPES = Set.of(
+            "application/pdf", "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp");
 
     private static final String SYSTEM_PROMPT = """
             You are a clinical decision support assistant. Use ONLY the provided clinical
@@ -67,9 +81,21 @@ public class CdsService {
             }
             """;
 
+    private static final String TRANSCRIPT_SUMMARY_SYSTEM_PROMPT = """
+            You are a medical scribe assistant. You will be given a raw, unedited speech-to-text
+            transcript of a conversation between a doctor and a patient. It may contain filler words,
+            false starts, repetition, small talk, and transcription errors. Extract and rewrite ONLY the
+            patient's chief complaint as a single concise clinical sentence — the presenting symptoms and
+            their duration, in the clear clinical language a doctor would write on a chart. Do not
+            diagnose, do not suggest treatment, and do not add any detail that was not actually stated in
+            the transcript. Return ONLY the chief complaint sentence — no preamble, no labels, no
+            quotation marks, no markdown.
+            """;
+
     private final PatientContextClient patientContextClient;
     private final OllamaEmbeddingClient embeddingClient;
     private final GroqClient groqClient;
+    private final AnthropicLlmClient anthropicLlmClient;
     private final KnowledgeChunkRepository knowledgeChunkRepository;
     private final CdsDiagnoseSessionRepository sessionRepository;
     private final PrescriptionRepository prescriptionRepository;
@@ -84,8 +110,21 @@ public class CdsService {
 
         List<ChunkMatch> matches = knowledgeChunkRepository.similaritySearch(queryEmbedding, TOP_K, SIMILARITY_THRESHOLD);
 
+        LlmClient llmClient = resolveLlmClient(request.provider());
         String userPrompt = buildUserPrompt(request, context, matches);
-        String rawLlmOutput = groqClient.complete(SYSTEM_PROMPT, userPrompt);
+
+        TestReportAttachmentDto attachment = request.testReportAttachment();
+        String rawLlmOutput;
+        if (attachment != null && llmClient.supportsAttachments()) {
+            validateAttachment(attachment);
+            rawLlmOutput = llmClient.completeWithAttachment(SYSTEM_PROMPT, userPrompt, attachment);
+        } else {
+            if (attachment != null) {
+                validateAttachment(attachment);
+                userPrompt = userPrompt + "\n\n" + buildAttachmentFallbackContext(attachment);
+            }
+            rawLlmOutput = llmClient.complete(SYSTEM_PROMPT, userPrompt);
+        }
         LlmCdsResult parsed = parseLlmResponse(rawLlmOutput);
 
         String disclaimer = matches.isEmpty()
@@ -114,6 +153,64 @@ public class CdsService {
                 sourceChunks,
                 disclaimer
         );
+    }
+
+    public SummarizeTranscriptResponse summarizeTranscript(SummarizeTranscriptRequest request) {
+        String gist = resolveLlmClient(request.provider()).complete(TRANSCRIPT_SUMMARY_SYSTEM_PROMPT, request.transcript());
+        return new SummarizeTranscriptResponse(stripQuotes(gist.trim()));
+    }
+
+    private String stripQuotes(String text) {
+        if (text.length() >= 2 && text.startsWith("\"") && text.endsWith("\"")) {
+            return text.substring(1, text.length() - 1).trim();
+        }
+        return text;
+    }
+
+    private LlmClient resolveLlmClient(String provider) {
+        if (provider != null && (provider.equalsIgnoreCase("claude") || provider.equalsIgnoreCase("anthropic"))) {
+            return anthropicLlmClient;
+        }
+        return groqClient;
+    }
+
+    private void validateAttachment(TestReportAttachmentDto attachment) {
+        if (!ALLOWED_ATTACHMENT_MIME_TYPES.contains(attachment.mimeType().toLowerCase())) {
+            throw new BusinessException("Unsupported test report file type: " + attachment.mimeType(),
+                    HttpStatus.BAD_REQUEST, "ATTACHMENT_UNSUPPORTED_TYPE");
+        }
+        byte[] decoded;
+        try {
+            decoded = Base64.getDecoder().decode(attachment.base64Data());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("Attached test report is not valid file data",
+                    HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID");
+        }
+        if (decoded.length > MAX_ATTACHMENT_BYTES) {
+            throw new BusinessException("Attached test report exceeds the 8 MB size limit",
+                    HttpStatus.PAYLOAD_TOO_LARGE, "ATTACHMENT_TOO_LARGE");
+        }
+    }
+
+    private String buildAttachmentFallbackContext(TestReportAttachmentDto attachment) {
+        if ("application/pdf".equalsIgnoreCase(attachment.mimeType())) {
+            String extracted = extractPdfText(attachment.base64Data());
+            if (extracted != null && !extracted.isBlank()) {
+                return "ATTACHED TEST REPORT (" + attachment.filename() + ", extracted text):\n" + extracted.trim();
+            }
+        }
+        return "NOTE: The doctor attached a test report file (" + attachment.filename() + ") but the selected AI "
+                + "provider cannot read its contents directly. Base the assessment on the reported symptoms and "
+                + "vitals only, and mention in redFlags that the attached report should be reviewed manually.";
+    }
+
+    private String extractPdfText(String base64Data) {
+        try (PDDocument document = Loader.loadPDF(Base64.getDecoder().decode(base64Data))) {
+            return new PDFTextStripper().getText(document);
+        } catch (Exception e) {
+            log.warn("Failed to extract text from attached PDF test report: {}", e.getMessage());
+            return null;
+        }
     }
 
     @Transactional

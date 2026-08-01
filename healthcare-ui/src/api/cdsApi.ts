@@ -5,6 +5,8 @@ import type {
   CdsResponse,
   SavePrescriptionRequest,
   Prescription,
+  SummarizeTranscriptRequest,
+  SummarizeTranscriptResponse,
 } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 
@@ -40,6 +42,11 @@ function unwrap<T>(res: { data: ApiResponse<T> }): T {
 export const cdsApi = {
   diagnose: (payload: DiagnosisInputRequest) =>
     cdsAxios.post<ApiResponse<CdsResponse>>('/cds/diagnose', payload).then(unwrap),
+
+  summarizeTranscript: (payload: SummarizeTranscriptRequest) =>
+    cdsAxios
+      .post<ApiResponse<SummarizeTranscriptResponse>>('/cds/summarize-transcript', payload)
+      .then(unwrap),
 
   savePrescription: (payload: SavePrescriptionRequest) =>
     cdsAxios

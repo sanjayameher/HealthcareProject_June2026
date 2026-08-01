@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class CdsProperties {
 
     private Groq groq = new Groq();
+    private Anthropic anthropic = new Anthropic();
     private Ollama ollama = new Ollama();
     private Jwt jwt = new Jwt();
     private Services services = new Services();
@@ -20,6 +21,13 @@ public class CdsProperties {
     public static class Groq {
         private String apiKey = "";
         private String model = "llama-3.3-70b-versatile";
+        private int maxTokens = 2048;
+    }
+
+    @Getter @Setter
+    public static class Anthropic {
+        private String apiKey = "";
+        private String model = "claude-opus-5";
         private int maxTokens = 2048;
     }
 

@@ -19,13 +19,14 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GroqClient {
+public class GroqClient implements LlmClient {
 
     private static final String API_BASE = "https://api.groq.com/openai/v1";
 
     private final CdsProperties props;
     private final RestClient restClient = RestClient.create(API_BASE);
 
+    @Override
     public String complete(String systemPrompt, String userPrompt) {
         Map<String, Object> body = Map.of(
                 "model", props.getGroq().getModel(),

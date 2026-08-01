@@ -41,6 +41,10 @@ cds:
     api-key: ${GROQ_API_KEY:}
     model: ${CDS_LLM_MODEL:llama-3.3-70b-versatile}
     max-tokens: 2048
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${CDS_ANTHROPIC_MODEL:claude-opus-5}
+    max-tokens: 2048
   ollama:
     url: ${OLLAMA_URL:http://localhost:11434}
     embedding-model: ${CDS_EMBEDDING_MODEL:nomic-embed-text}

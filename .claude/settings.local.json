@@ -32,7 +32,9 @@
       "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h 127.0.0.1 -U postgres -d healthdb -c \"SELECT id, patient_id, doctor_id, diagnosis_codes, drugs, notes, confirmed_at, created_at FROM dev.prescriptions ORDER BY created_at DESC LIMIT 3;\")",
       "Bash(\"/c/Program Files/nodejs/npm.cmd\" run dev)",
       "Bash(command -v powershell.exe)",
-      "Bash(:)"
+      "Bash(:)",
+      "PowerShell(Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in 5001,8080,8081,8082,8083,8084,8085,8086,8761 } | Select-Object LocalPort, OwningProcess | Sort-Object LocalPort)",
+      "Bash(\"/c/Program Files/nodejs/npx.cmd\" tsc --noEmit -p tsconfig.app.json)"
     ]
   }
 }

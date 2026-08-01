@@ -1,5 +1,6 @@
 package com.healthcare.cds.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -13,5 +14,7 @@ public record DiagnosisInputRequest(
         VitalSignsDto vitalSigns,
         String currentMedications,
         String knownAllergies,
-        String clinicalNotes
+        String clinicalNotes,
+        String provider,
+        @Valid TestReportAttachmentDto testReportAttachment
 ) {}
